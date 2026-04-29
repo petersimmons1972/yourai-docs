@@ -3,240 +3,874 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>engram-go — System Architecture</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>Engram — Architecture &amp; Container Topology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --void: #0a0b14; --plasma: #6c63ff; --signal: #00d4aa;
-    --bone: #e8e6f0; --dim: #4a4860; --ember: #ff6b6b;
-    --card: #13141f; --border: #1e1f30;
+    --bg:        #070b14;
+    --surface:   #0d1422;
+    --border:    #1e2d45;
+    --text:      #e2e8f0;
+    --muted:     #7c8fa8;
+    --postgres:  #3b82f6;
+    --ollama:    #a855f7;
+    --app:       #06b6d4;
+    --claude:    #f59e0b;
+    --green:     #10b981;
+    --red:       #ef4444;
+    --glow-pg:   rgba(59,130,246,0.18);
+    --glow-ol:   rgba(168,85,247,0.18);
+    --glow-app:  rgba(6,182,212,0.18);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--void); color: var(--bone); font-family: 'Inter', sans-serif;
-         font-size: 15px; line-height: 1.7; padding: 0 20px 60px; }
-  .page { max-width: 860px; margin: 0 auto; }
-  header { border-bottom: 1px solid var(--border); padding: 48px 0 32px; margin-bottom: 48px; }
-  header h1 { font-size: 36px; font-weight: 700; color: var(--bone); letter-spacing: -0.5px; }
-  header h1 span { color: var(--plasma); }
-  .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim);
-          letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; }
-  h2 { font-size: 20px; font-weight: 700; color: var(--bone); margin: 48px 0 16px;
-       padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-  h3 { font-size: 14px; font-weight: 600; color: var(--plasma); text-transform: uppercase;
-       letter-spacing: 1px; margin: 28px 0 10px; }
-  p { color: #b8b6c8; margin-bottom: 16px; }
-  strong { color: var(--bone); }
-  pre { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--plasma);
-        border-radius: 4px; padding: 20px 24px; margin: 20px 0; overflow-x: auto;
-        font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: var(--bone); }
-  code { font-family: 'JetBrains Mono', monospace; font-size: 13px;
-         background: var(--card); border: 1px solid var(--border);
-         padding: 1px 6px; border-radius: 3px; color: var(--signal); }
-  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-  th { background: var(--card); color: var(--dim); font-family: 'JetBrains Mono', monospace;
-       font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;
-       padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #b8b6c8; vertical-align: top; }
-  td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--signal); white-space: nowrap; }
-  tr:last-child td { border-bottom: none; }
-  .callout { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--signal);
-             border-radius: 4px; padding: 16px 20px; margin: 20px 0; }
-  .callout p { margin: 0; }
-  .decision { background: var(--card); border: 1px solid var(--border); border-radius: 4px;
-              padding: 16px 20px; margin: 12px 0; }
-  .decision-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim);
-                 text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-  .decision-q { font-size: 14px; font-weight: 600; color: var(--bone); margin-bottom: 6px; }
-  .decision-a { font-size: 14px; color: #b8b6c8; }
-  .decision-a strong { color: var(--signal); }
-  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border);
-           font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim);
-           display: flex; justify-content: space-between; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  /* ── HERO ─────────────────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, #070b14 0%, #0d1a30 50%, #091221 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 56px 40px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(6,182,212,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(6,182,212,0.1);
+    border: 1px solid rgba(6,182,212,0.35);
+    color: var(--app);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #e2e8f0 30%, var(--app) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 14px;
+  }
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 620px;
+    margin: 0 auto 28px;
+    font-weight: 400;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+  .hero-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+  .hero-pill .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+
+  /* ── LAYOUT ───────────────────────────────────────────────────────── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+
+  section { margin-bottom: 60px; }
+
+  h2 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2::before {
+    content: '';
+    display: block;
+    width: 4px; height: 22px;
+    border-radius: 2px;
+  }
+  h2.h-app::before    { background: var(--app); }
+  h2.h-pg::before     { background: var(--postgres); }
+  h2.h-ol::before     { background: var(--ollama); }
+  h2.h-db::before     { background: var(--green); }
+  h2.h-mcp::before    { background: var(--claude); }
+  h2.h-arch::before   { background: linear-gradient(var(--app), var(--ollama)); }
+
+  p { color: #b0bfd4; margin-bottom: 16px; font-size: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  strong { color: var(--text); }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.88em;
+    color: var(--app);
+  }
+
+  /* ── DIAGRAM SVG CARD ─────────────────────────────────────────────── */
+  .diagram-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    margin-bottom: 40px;
+    overflow-x: auto;
+  }
+  .diagram-card svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+  }
+
+  /* ── CONTAINER CARDS ─────────────────────────────────────────────── */
+  .container-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .ccard {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 24px;
+    border-left: 3px solid;
+    position: relative;
+    overflow: hidden;
+  }
+  .ccard::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 60px;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+  .ccard.pg  { border-color: var(--postgres); }
+  .ccard.pg::before  { background: var(--postgres); }
+  .ccard.ol  { border-color: var(--ollama); }
+  .ccard.ol::before  { background: var(--ollama); }
+  .ccard.app { border-color: var(--app); }
+  .ccard.app::before { background: var(--app); }
+
+  .ccard-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .ccard-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .ccard.pg  .ccard-icon { background: rgba(59,130,246,0.15); }
+  .ccard.ol  .ccard-icon { background: rgba(168,85,247,0.15); }
+  .ccard.app .ccard-icon { background: rgba(6,182,212,0.15); }
+
+  .ccard-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.01em;
+  }
+  .ccard.pg  .ccard-title { color: var(--postgres); }
+  .ccard.ol  .ccard-title { color: var(--ollama); }
+  .ccard.app .ccard-title { color: var(--app); }
+
+  .ccard-image { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  .kv-list { margin-top: 12px; }
+  .kv { display: flex; gap: 8px; margin-bottom: 7px; font-size: 0.9rem; align-items: flex-start; }
+  .kv-key {
+    color: var(--muted);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 90px;
+    padding-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+  .kv-val { color: var(--text); }
+
+  /* ── TABLE GRID ───────────────────────────────────────────────────── */
+  .table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .tbl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .tbl-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--green);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tbl-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+  .badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge-vec { background: rgba(168,85,247,0.15); color: var(--ollama); border: 1px solid rgba(168,85,247,0.3); }
+  .badge-ext { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+  .badge-core { background: rgba(6,182,212,0.1); color: var(--app); border: 1px solid rgba(6,182,212,0.25); }
+
+  /* ── TOOL GROUPS ──────────────────────────────────────────────────── */
+  .tool-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .tool-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .tg-header {
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .tool-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .tool-list li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 2px 7px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── PROTOCOL FLOW ───────────────────────────────────────────────── */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .flow-node {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 6px;
+  }
+  .fn-client { background: rgba(245,158,11,0.12); color: var(--claude); border: 1px solid rgba(245,158,11,0.3); }
+  .fn-app    { background: rgba(6,182,212,0.1);   color: var(--app);   border: 1px solid rgba(6,182,212,0.3); }
+  .fn-pg     { background: rgba(59,130,246,0.1);  color: var(--postgres); border: 1px solid rgba(59,130,246,0.3); }
+  .fn-ol     { background: rgba(168,85,247,0.1);  color: var(--ollama); border: 1px solid rgba(168,85,247,0.3); }
+  .fn-claude { background: rgba(245,158,11,0.12); color: var(--claude); border: 1px solid rgba(245,158,11,0.3); }
+  .flow-arrow { color: var(--muted); font-size: 1.1rem; }
+  .flow-proto {
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 2px 8px;
+    background: rgba(255,255,255,0.02);
+  }
+  .flow-desc { color: var(--muted); font-size: 0.88rem; margin-left: auto; }
+
+  /* ── FOOTER ──────────────────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 32px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
 </style>
 </head>
 <body>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-badge">System Architecture</div>
+  <h1>Engram Memory Server</h1>
+  <p class="hero-sub">A self-hosted semantic memory engine built in Go — giving AI assistants persistent, searchable, relationship-aware memory backed by PostgreSQL + pgvector and local LLM embeddings.</p>
+  <div class="hero-meta">
+    <div class="hero-pill"><span class="dot" style="background:var(--app)"></span>MCP · :8788</div>
+    <div class="hero-pill"><span class="dot" style="background:var(--postgres)"></span>PostgreSQL · :5432</div>
+    <div class="hero-pill"><span class="dot" style="background:var(--ollama)"></span>Ollama · :11434</div>
+    <div class="hero-pill"><span class="dot" style="background:var(--green)"></span>50+ Tools</div>
+    <div class="hero-pill"><span class="dot" style="background:var(--claude)"></span>AMD ROCm GPU</div>
+  </div>
+</div>
+
 <div class="page">
 
-<header>
-  <h1><span>engram</span>-go &mdash; System Architecture</h1>
-  <div class="meta">yourai.com &middot; internal technical reference &middot; 2026-04-29</div>
-</header>
+<!-- ── ARCHITECTURE DIAGRAM ──────────────────────────────────────────── -->
+<section>
+  <h2 class="h-arch">Container Topology</h2>
+  <p>Three Docker containers collaborate in a private Compose network. The <strong>engram-go-app</strong> process is the only externally reachable component, exposing a single HTTP endpoint on port 8788. PostgreSQL and Ollama are entirely internal — never accessible from the host network — and are consumed only by the application layer.</p>
 
-<h2>Overview</h2>
-<p>engram-go is the memory layer powering yourai.com. It stores, indexes, and retrieves memories for AI agents using PostgreSQL with pgvector for semantic search, Ollama for local embeddings, and a multi-tenant ownership model enforced at the database engine level via Row Level Security.</p>
-<p>The system exposes two transports: an MCP (Model Context Protocol) server over SSE for AI clients such as Claude Code, and a REST API for web clients that cannot speak MCP natively. Both transports share the same service layer and the same database. Same memory, different wire format.</p>
+  <div class="diagram-card">
+    <svg viewBox="0 0 900 540" xmlns="http://www.w3.org/2000/svg" width="900" height="540" font-family="JetBrains Mono, monospace" font-size="12">
+      <defs>
+        <!-- Gradients -->
+        <linearGradient id="g-app" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#0891b2" stop-opacity="0.06"/>
+        </linearGradient>
+        <linearGradient id="g-pg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#2563eb" stop-opacity="0.06"/>
+        </linearGradient>
+        <linearGradient id="g-ol" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#a855f7" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#9333ea" stop-opacity="0.06"/>
+        </linearGradient>
+        <linearGradient id="g-client" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.14"/>
+          <stop offset="100%" stop-color="#d97706" stop-opacity="0.04"/>
+        </linearGradient>
+        <!-- Glow filters -->
+        <filter id="glow-app"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-pg"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-ol"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <!-- Arrow markers -->
+        <marker id="arr-teal" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#06b6d4"/>
+        </marker>
+        <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6"/>
+        </marker>
+        <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#a855f7"/>
+        </marker>
+        <marker id="arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#f59e0b"/>
+        </marker>
+        <marker id="arr-muted" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#7c8fa8"/>
+        </marker>
+      </defs>
 
-<div class="callout">
-  <p><strong>Single-user and multi-tenant in one binary.</strong> Existing single-user deployments require zero configuration changes. <code>ENGRAM_API_KEY</code> bootstraps a default owner on every startup &mdash; this is permanent infrastructure, not a migration shim.</p>
-</div>
+      <!-- ── Docker Compose network boundary ── -->
+      <rect x="180" y="20" width="680" height="500" rx="16"
+            fill="rgba(13,20,34,0.8)" stroke="#1e2d45" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="200" y="46" fill="#1e2d45" font-size="11" letter-spacing="0.12em" font-weight="600">DOCKER COMPOSE NETWORK · engram_default</text>
 
-<h2>Component Map</h2>
-<pre>
-+---------------------------------------------------------------+
-|  Clients                                                      |
-|  yourai.com  |  mobile / REST  |  third-party  |  Claude Code |
-+-------+---------------------------------------+---------------+
-        | Bearer token                          | MCP / SSE
-        v                                       |
-+-------------------------------+               |
-|  REST API                     |               |
-|  internal/rest/               |               |
-|  SHA256(token) -> owner_id    |               |
-|  LRU cache . 1h TTL           |               |
-|  HTTP concerns only           |               |
-+---------------+---------------+               |
-                |                               |
-                +---------------+---------------+
-                                |
-                                v
-+---------------------------------------------------------------+
-|  Service Layer  .  internal/service/                          |
-|  Shared by REST and MCP. Owner-scoped queries.                |
-|  SET LOCAL app.current_owner_id per transaction               |
-+---------------------------------------------------------------+
-                                |
-                                v
-+---------------------------------------------------------------+
-|  PostgreSQL + pgvector + Row Level Security                   |
-|                                                               |
-|  memories . chunks . episodes . relationships . documents     |
-|                                                               |
-|  Every table carries owner_id. RLS enforces isolation at      |
-|  the engine -- no cross-owner rows regardless of query path.  |
-|                                                               |
-|  PgBouncer . transaction mode                                 |
-|  SET LOCAL resets on transaction end (pool-safe)              |
-+---------------------------------------------------------------+
-                                |
-                                v
-+---------------------------------------------------------------+
-|  Ollama  .  qwen3-embedding:8b                                |
-|  MRL truncation to 1024 dims . pgvector column vector(1024)   |
-|  Shared single instance per deployment                        |
-+---------------------------------------------------------------+
-</pre>
+      <!-- ── Shared HTML VOLUMES legend ── -->
+      <!-- Volumes label top-right -->
+      <text x="700" y="46" fill="#1e2d45" font-size="11" letter-spacing="0.08em">NAMED VOLUMES</text>
+      <!-- pgdata volume pill -->
+      <rect x="698" y="52" width="140" height="22" rx="5" fill="rgba(59,130,246,0.08)" stroke="rgba(59,130,246,0.2)" stroke-width="1"/>
+      <text x="768" y="67" fill="#3b82f6" font-size="11" text-anchor="middle">engram_pgdata</text>
+      <!-- ollama volume pill -->
+      <rect x="698" y="80" width="140" height="22" rx="5" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.2)" stroke-width="1"/>
+      <text x="768" y="95" fill="#a855f7" font-size="11" text-anchor="middle">ollama_ollama_storage</text>
 
-<h2>REST API Surface</h2>
-<p>Minimum viable surface for yourai.com. Auth is Bearer token on every request.</p>
-<table>
-  <tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
-  <tr><td>POST</td><td>/v1/memories</td><td>Store a memory for the authenticated owner</td></tr>
-  <tr><td>POST</td><td>/v1/recall</td><td>Semantic + full-text recall across owner's memories</td></tr>
-  <tr><td>GET</td><td>/v1/memories/{id}</td><td>Fetch a specific memory by ID</td></tr>
-  <tr><td>PATCH</td><td>/v1/memories/{id}</td><td>Correct content, tags, or importance weight</td></tr>
-  <tr><td>POST</td><td>/v1/memories/{id}/connect</td><td>Create a typed relationship between two memories</td></tr>
-  <tr><td>GET</td><td>/v1/projects</td><td>List the owner's projects</td></tr>
-</table>
+      <!-- ════════════════════════════════════════════════════
+           engram-go-app  (top center)
+           ════════════════════════════════════════════════════ -->
+      <rect x="280" y="60" width="280" height="175" rx="12"
+            fill="url(#g-app)" stroke="#06b6d4" stroke-width="1.8" filter="url(#glow-app)"/>
+      <!-- header bar -->
+      <rect x="280" y="60" width="280" height="32" rx="12" fill="rgba(6,182,212,0.15)"/>
+      <rect x="280" y="80" width="280" height="12" fill="rgba(6,182,212,0.15)"/>
+      <text x="420" y="81" text-anchor="middle" fill="#06b6d4" font-weight="700" font-size="14">engram-go-app</text>
+      <text x="420" y="95" text-anchor="middle" fill="#7c8fa8" font-size="10">engram-go:latest  (Chainguard distroless)</text>
 
-<div class="callout">
-  <p><strong>Architectural constraint:</strong> REST handlers in <code>internal/rest/</code> call <code>internal/service/</code> only. No MCP-specific types may appear in the REST package. A future Rust gateway becomes a translation job (~200 lines), not a rewrite.</p>
-</div>
+      <!-- app details -->
+      <text x="296" y="118" fill="#e2e8f0" font-size="11.5">🔵  Port 8788 → :8788  (host-visible)</text>
+      <text x="296" y="136" fill="#7c8fa8" font-size="11">   MCP endpoint  /mcp  (HTTP + SSE)</text>
+      <text x="296" y="154" fill="#e2e8f0" font-size="11.5">🧠  50+ MCP tools  (Go process)</text>
+      <text x="296" y="172" fill="#e2e8f0" font-size="11.5">🔒  mem_limit 512 MB · pids_limit 512</text>
+      <text x="296" y="190" fill="#7c8fa8" font-size="11">   ENGRAM_OLLAMA_MODEL=nomic-embed-text</text>
+      <text x="296" y="208" fill="#7c8fa8" font-size="11">   Claude API opt-in (ANTHROPIC_API_KEY)</text>
 
-<h2>Multi-Tenant Owner Model</h2>
+      <!-- ════════════════════════════════════════════════════
+           engram-postgres  (bottom left)
+           ════════════════════════════════════════════════════ -->
+      <rect x="196" y="290" width="260" height="190" rx="12"
+            fill="url(#g-pg)" stroke="#3b82f6" stroke-width="1.8" filter="url(#glow-pg)"/>
+      <rect x="196" y="290" width="260" height="32" rx="12" fill="rgba(59,130,246,0.15)"/>
+      <rect x="196" y="310" width="260" height="12" fill="rgba(59,130,246,0.15)"/>
+      <text x="326" y="311" text-anchor="middle" fill="#3b82f6" font-weight="700" font-size="14">engram-postgres</text>
+      <text x="326" y="326" text-anchor="middle" fill="#7c8fa8" font-size="10">engram-postgres-cg:latest  (Chainguard pg)</text>
 
-<h3>Identity</h3>
-<p>Every API request carries a Bearer token. The auth middleware computes <code>SHA256(token)</code>, looks it up in <code>api_keys</code>, and places <code>owner_id</code> into the request context. An in-process LRU cache (TTL: <code>ENGRAM_AUTH_CACHE_TTL</code>, default 1 hour) avoids re-hashing on every call. Revocation calls <code>cache.Delete</code> immediately &mdash; it does not wait for TTL expiry.</p>
+      <text x="212" y="350" fill="#e2e8f0" font-size="11.5">🗄  Port 5432  (internal only)</text>
+      <text x="212" y="368" fill="#e2e8f0" font-size="11.5">📦  DB: engram  /  user: engram</text>
+      <text x="212" y="386" fill="#7c8fa8" font-size="11">   shared_buffers=24 GB</text>
+      <text x="212" y="402" fill="#7c8fa8" font-size="11">   max_connections=300</text>
+      <text x="212" y="418" fill="#7c8fa8" font-size="11">   shm_size=2 GB</text>
+      <text x="212" y="436" fill="#e2e8f0" font-size="11.5">🔌  Extension: pgvector (768-dim HNSW)</text>
+      <text x="212" y="454" fill="#7c8fa8" font-size="11">   9+ tables: memories · chunks · …</text>
+      <!-- volume connector line -->
+      <line x1="420" y1="480" x2="420" y2="500" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4,3"/>
+      <rect x="340" y="458" width="122" height="20" rx="4" fill="rgba(59,130,246,0.1)" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+      <text x="401" y="471" text-anchor="middle" fill="#3b82f6" font-size="10">💾 engram_pgdata</text>
 
-<h3>Database isolation</h3>
-<p>The service layer issues <code>SET LOCAL app.current_owner_id = $1</code> at the start of every transaction. RLS policies on all data tables use this session variable to filter rows. No query can return rows belonging to a different owner. PgBouncer in transaction mode is confirmed safe: <code>SET LOCAL</code> resets when the transaction ends, which is also when PgBouncer returns the connection to the pool.</p>
+      <!-- ════════════════════════════════════════════════════
+           engram-ollama  (bottom right)
+           ════════════════════════════════════════════════════ -->
+      <rect x="490" y="290" width="340" height="190" rx="12"
+            fill="url(#g-ol)" stroke="#a855f7" stroke-width="1.8" filter="url(#glow-ol)"/>
+      <rect x="490" y="290" width="340" height="32" rx="12" fill="rgba(168,85,247,0.15)"/>
+      <rect x="490" y="310" width="340" height="12" fill="rgba(168,85,247,0.15)"/>
+      <text x="660" y="311" text-anchor="middle" fill="#a855f7" font-weight="700" font-size="14">engram-ollama</text>
+      <text x="660" y="326" text-anchor="middle" fill="#7c8fa8" font-size="10">ollama/ollama:rocm  (AMD GPU image)</text>
 
-<h3>Project scoping</h3>
-<p>Projects are free-form labels, unique per <code>(owner_id, project)</code> pair. Two owners can both use the project name <code>"default"</code> with no collision. Owner identity is resolved from the Bearer token &mdash; callers never prefix project names, and the API is unchanged for existing single-user deployments.</p>
+      <text x="506" y="350" fill="#e2e8f0" font-size="11.5">🔊  Port 127.0.0.1:11434 → :11434</text>
+      <text x="506" y="368" fill="#e2e8f0" font-size="11.5">🖥  AMD ROCm  (gfx1100 / HSA_OVERRIDE)</text>
+      <text x="506" y="386" fill="#7c8fa8" font-size="11">   OLLAMA_FLASH_ATTENTION=1</text>
+      <text x="506" y="402" fill="#7c8fa8" font-size="11">   OLLAMA_KEEP_ALIVE=1h</text>
+      <text x="506" y="420" fill="#e2e8f0" font-size="11.5">🤖  nomic-embed-text  → 768-dim vectors</text>
+      <text x="506" y="438" fill="#e2e8f0" font-size="11.5">💬  llama3.2:3b  → summarization</text>
+      <!-- volume -->
+      <rect x="588" y="458" width="148" height="20" rx="4" fill="rgba(168,85,247,0.1)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+      <text x="662" y="471" text-anchor="middle" fill="#a855f7" font-size="10">💾 ollama_ollama_storage</text>
 
-<h3>Billing model</h3>
-<table>
-  <tr><th>billing_model</th><th>anthropic_key_secret_ref</th><th>Who</th></tr>
-  <tr><td>claude_code</td><td>NULL</td><td>Self-hosted, developers, open source</td></tr>
-  <tr><td>byok</td><td>Customer-supplied key ref</td><td>Enterprise with Anthropic agreements</td></tr>
-  <tr><td>platform</td><td>yourai.com-managed</td><td>Consumer SaaS &mdash; yourai absorbs API cost</td></tr>
-</table>
+      <!-- ════════════════════════════════════════════════════
+           External: AI Client
+           ════════════════════════════════════════════════════ -->
+      <rect x="8" y="95" width="148" height="130" rx="12"
+            fill="url(#g-client)" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="82" y="118" text-anchor="middle" fill="#f59e0b" font-weight="700" font-size="13">AI Client</text>
+      <text x="82" y="136" text-anchor="middle" fill="#7c8fa8" font-size="10">(Claude Code / IDE)</text>
+      <text x="24" y="158" fill="#e2e8f0" font-size="11.5">🔑  API key auth</text>
+      <text x="24" y="175" fill="#e2e8f0" font-size="11.5">📡  HTTP/SSE</text>
+      <text x="24" y="192" fill="#7c8fa8" font-size="11">   MCP protocol</text>
+      <text x="24" y="208" fill="#7c8fa8" font-size="11">   sse + message</text>
 
-<h2>Key Schema &mdash; api_keys</h2>
-<p>Keys are never hard-deleted. Revocation sets <code>revoked_at</code>. The table is a permanent forensic record.</p>
-<pre>
-CREATE TABLE api_keys (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id      UUID NOT NULL REFERENCES owners(id),
-  key_hash      TEXT NOT NULL UNIQUE,   -- SHA256(bearer_token)
-  display_name  TEXT,
-  revoked_at    TIMESTAMPTZ,            -- NULL = active
-  last_used_at  TIMESTAMPTZ,            -- updated async on auth
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-</pre>
+      <!-- ════════════════════════════════════════════════════
+           External: Claude API (optional)
+           ════════════════════════════════════════════════════ -->
+      <rect x="8" y="260" width="148" height="80" rx="12"
+            fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="5,3"/>
+      <text x="82" y="285" text-anchor="middle" fill="#f59e0b" font-weight="600" font-size="12">Claude API</text>
+      <text x="82" y="301" text-anchor="middle" fill="#7c8fa8" font-size="10">api.anthropic.com</text>
+      <text x="82" y="320" text-anchor="middle" fill="#7c8fa8" font-size="10">opt-in · HTTPS</text>
 
-<h2>Embedding Stack</h2>
-<table>
-  <tr><th>Component</th><th>Value</th></tr>
-  <tr><td>Model</td><td>qwen3-embedding:8b</td></tr>
-  <tr><td>Technique</td><td>MRL (Matryoshka Representation Learning) truncation</td></tr>
-  <tr><td>Native dims</td><td>4096</td></tr>
-  <tr><td>Stored dims</td><td>1024 &mdash; ENGRAM_EMBED_DIMENSIONS=1024</td></tr>
-  <tr><td>pgvector column</td><td>vector(1024)</td></tr>
-  <tr><td>Index type</td><td>HNSW</td></tr>
-  <tr><td>Ollama endpoint</td><td>http://ollama:11434 (shared, single instance)</td></tr>
-</table>
+      <!-- ════════════════════════════════════════════════════
+           ARROWS / CONNECTIONS
+           ════════════════════════════════════════════════════ -->
 
-<h2>Locked Architectural Decisions</h2>
+      <!-- Client → engram-go-app  (MCP / HTTP+SSE) -->
+      <path d="M156,148 L278,148" stroke="#f59e0b" stroke-width="1.8"
+            fill="none" marker-end="url(#arr-amber)"/>
+      <rect x="165" y="135" width="104" height="16" rx="3" fill="rgba(13,20,34,0.9)"/>
+      <text x="217" y="147" text-anchor="middle" fill="#f59e0b" font-size="10">HTTP+SSE · :8788</text>
 
-<div class="decision">
-  <div class="decision-id">D1 &middot; Language</div>
-  <div class="decision-q">What language for new services?</div>
-  <div class="decision-a"><strong>Go core stays. New standalone services default to Rust.</strong> engram-go is mature Go. Rust for new boundary services for performance and safety.</div>
-</div>
-<div class="decision">
-  <div class="decision-id">D2 &middot; Database placement</div>
-  <div class="decision-q">Where does the database live?</div>
-  <div class="decision-a"><strong>External to the app cluster always.</strong> App containers are ephemeral. DB state must survive container rebuilds and K8s pod restarts. TruNAS:5433 for homelab; Aurora for production.</div>
-</div>
-<div class="decision">
-  <div class="decision-id">D3 &middot; Container images</div>
-  <div class="decision-q">Which container base images?</div>
-  <div class="decision-a"><strong>Chainguard hardened distroless images.</strong> Minimal CVE surface, no shell in production, supply chain provenance.</div>
-</div>
-<div class="decision">
-  <div class="decision-id">D4 &middot; Data isolation</div>
-  <div class="decision-q">How is owner isolation enforced?</div>
-  <div class="decision-a"><strong>PostgreSQL RLS &mdash; not application-layer filters alone.</strong> Application-layer filters can be bypassed by bugs or missing middleware. RLS enforces isolation at the DB engine level regardless of how a query arrives.</div>
-</div>
-<div class="decision">
-  <div class="decision-id">D5 &middot; Audit log</div>
-  <div class="decision-q">How is the audit log written?</div>
-  <div class="decision-a"><strong>Embedded, atomic with the operation it records.</strong> Audit entries are written in the same transaction as the operation. Append-only table.</div>
-</div>
-<div class="decision">
-  <div class="decision-id">D6 &middot; Connection pooling</div>
-  <div class="decision-q">PgBouncer and SET LOCAL behavior?</div>
-  <div class="decision-a"><strong>PgBouncer transaction mode. SET LOCAL confirmed safe.</strong> Resets at transaction end = pool return point. RDS Proxy behavior with SET LOCAL is untested &mdash; POC required before Aurora production cutover.</div>
-</div>
-<div class="decision">
-  <div class="decision-id">D7 &middot; Anthropic API keys</div>
-  <div class="decision-q">How do tenants supply Anthropic API keys?</div>
-  <div class="decision-a"><strong>BYOK + platform-absorbed.</strong> <code>billing_model</code> enum on the <code>owners</code> table. NULL <code>anthropic_key_secret_ref</code> implies <code>claude_code</code> subscription mode.</div>
-</div>
+      <!-- engram-go-app → postgres  (PostgreSQL wire) -->
+      <path d="M380,235 C380,262 326,262 326,288" stroke="#3b82f6" stroke-width="1.8"
+            fill="none" marker-end="url(#arr-blue)"/>
+      <rect x="313" y="252" width="108" height="16" rx="3" fill="rgba(13,20,34,0.9)"/>
+      <text x="367" y="264" text-anchor="middle" fill="#3b82f6" font-size="10">PostgreSQL · :5432</text>
 
-<h2>Deployment Stack</h2>
-<table>
-  <tr><th>Component</th><th>Technology</th></tr>
-  <tr><td>App runtime</td><td>Go 1.22+, Chainguard distroless image</td></tr>
-  <tr><td>MCP transport</td><td>mark3labs/mcp-go v0.45.0, SSE, port 8788</td></tr>
-  <tr><td>Database</td><td>PostgreSQL 17 + pgvector, Chainguard image</td></tr>
-  <tr><td>Embeddings</td><td>Ollama, qwen3-embedding:8b, AMD GPU</td></tr>
-  <tr><td>Connection pooler</td><td>PgBouncer, transaction mode</td></tr>
-  <tr><td>Secrets</td><td>Infisical</td></tr>
-  <tr><td>Homelab DB</td><td>TruNAS Scale, port 5433, ZFS recordsize=8K</td></tr>
-  <tr><td>Production DB target</td><td>AWS Aurora PostgreSQL (SET LOCAL POC pending)</td></tr>
-  <tr><td>Orchestration</td><td>Kubernetes, Traefik, cert-manager, Cloudflare DNS01</td></tr>
-</table>
+      <!-- engram-go-app → ollama  (HTTP REST) -->
+      <path d="M510,235 C510,262 580,262 580,288" stroke="#a855f7" stroke-width="1.8"
+            fill="none" marker-end="url(#arr-purple)"/>
+      <rect x="510" y="252" width="88" height="16" rx="3" fill="rgba(13,20,34,0.9)"/>
+      <text x="554" y="264" text-anchor="middle" fill="#a855f7" font-size="10">HTTP · :11434</text>
 
-<h2>Tool Dispatch Timeout</h2>
-<p>All MCP tool handlers wrap execution in <code>context.WithTimeout</code> with a default of 15 seconds. Context propagation through mcp-go's in-process transport was validated via a spike test (PR #381): a blocking handler cancelled correctly within 300ms. Timed-out tools return <code>IsError: true</code> with a human-readable message rather than hanging the SSE connection.</p>
+      <!-- engram-go-app → Claude API  (optional) -->
+      <path d="M280,195 C200,195 156,290 156,295" stroke="#f59e0b" stroke-width="1.2"
+            fill="none" stroke-dasharray="5,4" marker-end="url(#arr-amber)"/>
+      <text x="205" y="250" fill="#f59e0b" font-size="10">HTTPS (opt-in)</text>
+
+      <!-- health-check arrows (small, muted) -->
+      <text x="600" y="20" fill="#1e2d45" font-size="10">depends_on healthy ✓</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ── PROTOCOL FLOWS ───────────────────────────────────────────────── -->
+<section>
+  <h2 class="h-app">Protocol Flows</h2>
+  <p>Every AI-assisted memory operation follows one of these paths. The MCP transport is HTTP with <strong>Server-Sent Events</strong> for streaming — no WebSocket, no custom protocol. The client connects once and the server pushes tool results as they complete.</p>
+
+  <div class="flow-row">
+    <span class="flow-node fn-client">Claude Code</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-proto">HTTP+SSE · :8788/mcp</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node fn-app">engram-go-app</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-proto">HTTP REST · :11434</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node fn-ol">Ollama</span>
+    <span class="flow-desc">memory store / recall (embed query)</span>
+  </div>
+
+  <div class="flow-row">
+    <span class="flow-node fn-client">Claude Code</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-proto">HTTP+SSE · :8788/mcp</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node fn-app">engram-go-app</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-proto">PostgreSQL wire · :5432</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node fn-pg">Postgres</span>
+    <span class="flow-desc">ANN vector search + full-text</span>
+  </div>
+
+  <div class="flow-row">
+    <span class="flow-node fn-app">engram-go-app</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-proto">HTTPS (opt-in)</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node fn-claude">Claude API</span>
+    <span class="flow-desc">memory_reason / memory_summarize (when ENGRAM_CLAUDE_SUMMARIZE=true)</span>
+  </div>
+
+  <div class="flow-row">
+    <span class="flow-node fn-ol">Ollama</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-proto">ROCm / HIP</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:5px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:600;">AMD GPU</span>
+    <span class="flow-desc">nomic-embed-text inference + llama3.2:3b summarization</span>
+  </div>
+</section>
+
+<!-- ── CONTAINERS ────────────────────────────────────────────────────── -->
+<section>
+  <h2 class="h-app">Container Details</h2>
+  <p>All three containers start in order: <strong>postgres</strong> must pass a <code>pg_isready</code> health check, then <strong>ollama</strong> must confirm <code>nomic-embed-text</code> is loaded, then <strong>engram-go-app</strong> starts and passes its own <code>/health</code> probe. Any failure in the chain blocks startup cleanly.</p>
+
+  <div class="container-grid">
+    <div class="ccard app">
+      <div class="ccard-header">
+        <div class="ccard-icon">⚡</div>
+        <div>
+          <div class="ccard-title">engram-go-app</div>
+          <div class="ccard-image">engram-go:latest</div>
+        </div>
+      </div>
+      <div class="kv-list">
+        <div class="kv"><span class="kv-key">Port</span><span class="kv-val"><code>8788</code> → host</span></div>
+        <div class="kv"><span class="kv-key">Runtime</span><span class="kv-val">Go · Chainguard distroless</span></div>
+        <div class="kv"><span class="kv-key">Transport</span><span class="kv-val">HTTP + SSE (MCP)</span></div>
+        <div class="kv"><span class="kv-key">Limits</span><span class="kv-val">512 MB RAM · 512 PIDs</span></div>
+        <div class="kv"><span class="kv-key">Security</span><span class="kv-val">no-new-privileges · read-only FS</span></div>
+        <div class="kv"><span class="kv-key">Health</span><span class="kv-val"><code>/starter health</code> → /health</span></div>
+        <div class="kv"><span class="kv-key">Restarts</span><span class="kv-val">unless-stopped</span></div>
+      </div>
+    </div>
+
+    <div class="ccard pg">
+      <div class="ccard-header">
+        <div class="ccard-icon">🗄</div>
+        <div>
+          <div class="ccard-title">engram-postgres</div>
+          <div class="ccard-image">engram-postgres-cg:latest</div>
+        </div>
+      </div>
+      <div class="kv-list">
+        <div class="kv"><span class="kv-key">Port</span><span class="kv-val"><code>5432</code> internal only</span></div>
+        <div class="kv"><span class="kv-key">Database</span><span class="kv-val"><code>engram</code> · user <code>engram</code></span></div>
+        <div class="kv"><span class="kv-key">Volume</span><span class="kv-val">engram_pgdata (external)</span></div>
+        <div class="kv"><span class="kv-key">shm_size</span><span class="kv-val">2 GB</span></div>
+        <div class="kv"><span class="kv-key">shared_buf</span><span class="kv-val">24 GB</span></div>
+        <div class="kv"><span class="kv-key">cache_size</span><span class="kv-val">96 GB effective</span></div>
+        <div class="kv"><span class="kv-key">Extensions</span><span class="kv-val">pgvector (768-dim HNSW)</span></div>
+        <div class="kv"><span class="kv-key">Health</span><span class="kv-val"><code>pg_isready</code> every 5 s</span></div>
+      </div>
+    </div>
+
+    <div class="ccard ol">
+      <div class="ccard-header">
+        <div class="ccard-icon">🤖</div>
+        <div>
+          <div class="ccard-title">engram-ollama</div>
+          <div class="ccard-image">ollama/ollama:rocm</div>
+        </div>
+      </div>
+      <div class="kv-list">
+        <div class="kv"><span class="kv-key">Port</span><span class="kv-val"><code>11434</code> → localhost only</span></div>
+        <div class="kv"><span class="kv-key">GPU</span><span class="kv-val">AMD ROCm · gfx1100</span></div>
+        <div class="kv"><span class="kv-key">Devices</span><span class="kv-val">/dev/kfd · /dev/dri</span></div>
+        <div class="kv"><span class="kv-key">Volume</span><span class="kv-val">ollama_ollama_storage</span></div>
+        <div class="kv"><span class="kv-key">Embed</span><span class="kv-val">nomic-embed-text → 768d</span></div>
+        <div class="kv"><span class="kv-key">Summ.</span><span class="kv-val">llama3.2:3b</span></div>
+        <div class="kv"><span class="kv-key">Keep-alive</span><span class="kv-val">1 h (no reload penalty)</span></div>
+        <div class="kv"><span class="kv-key">Health</span><span class="kv-val"><code>ollama list | grep nomic</code></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DATABASE SCHEMA ───────────────────────────────────────────────── -->
+<section>
+  <h2 class="h-db">Database Schema</h2>
+  <p>The <code>engram</code> database has grown through 18 migrations from a simple key-value store to a full episodic, graph-connected, vector-indexed memory system. Every memory carries a UUID v7 primary key, full-text search via <strong>tsvector</strong>, and a 768-dimensional <strong>pgvector</strong> embedding stored in an HNSW index for sub-millisecond approximate nearest-neighbour retrieval.</p>
+
+  <div class="table-grid">
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-core">CORE</span> memories</div>
+      <div class="tbl-desc">Primary store — content, type, project, tags, importance, access counts, expiry, immutability, episode linkage. Full-text search via generated tsvector column.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-vec">VECTOR</span> chunks</div>
+      <div class="tbl-desc">Sentence-window chunks of each memory. Stores 768-dim <code>embedding_vec vector(768)</code> with HNSW index. Used for ANN semantic retrieval. Cascades on memory delete.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-core">GRAPH</span> relationships</div>
+      <div class="tbl-desc">Directed weighted edges between memories. Relation types: caused_by, depends_on, supersedes, contradicts, supports, derived_from, part_of, and more.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-core">META</span> project_meta</div>
+      <div class="tbl-desc">Per-project key/value configuration store. Composite PK (project, key) prevents cross-project collision. Stores schema version, backfill state, and feature flags.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-ext">EPISODE</span> episodes</div>
+      <div class="tbl-desc">Session grouping — memories from a single AI session are bound to an episode ID for chronological recall. Episodes carry start/end timestamps and optional summaries.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-ext">DOCS</span> documents</div>
+      <div class="tbl-desc">Tier-2 raw document storage for large inputs (&gt;8 MB). Parent memory holds a synopsis + foreign key. SHA-256 deduplication. Up to 50 MB per document.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-ext">AUDIT</span> retrieval_events</div>
+      <div class="tbl-desc">Logs every recall operation with query, scores, and feedback classification. Powers adaptive weight tuning and retrieval drift monitoring over time.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-ext">ENTITY</span> entities</div>
+      <div class="tbl-desc">Canonical entity index extracted from memory content. Supports entity-centric queries and relationship inference across the memory graph.</div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-name"><span class="badge badge-ext">WEIGHT</span> weight_history</div>
+      <div class="tbl-desc">Time-series of adaptive retrieval weight updates per project. Used to replay weight evolution and diagnose ranking drift via memory_audit_compare.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MCP TOOLS ──────────────────────────────────────────────────────── -->
+<section>
+  <h2 class="h-mcp">MCP Tool Catalog</h2>
+  <p>Engram exposes over 50 tools via the Model Context Protocol. Tools are grouped by function. The <strong>Claude-required</strong> group is registered only when <code>ANTHROPIC_API_KEY</code> is set and the corresponding opt-in flag is enabled — the core system is fully self-contained without it.</p>
+
+  <div class="tool-groups">
+    <div class="tool-group">
+      <div class="tg-header" style="color:var(--app)">
+        <span class="tg-dot" style="background:var(--app)"></span>Store
+      </div>
+      <ul class="tool-list">
+        <li>memory_store</li>
+        <li>memory_store_document</li>
+        <li>memory_store_batch</li>
+        <li>memory_quick_store</li>
+        <li>memory_ingest_document_stream</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:var(--green)">
+        <span class="tg-dot" style="background:var(--green)"></span>Recall &amp; Retrieval
+      </div>
+      <ul class="tool-list">
+        <li>memory_recall</li>
+        <li>memory_fetch</li>
+        <li>memory_list</li>
+        <li>memory_history</li>
+        <li>memory_timeline</li>
+        <li>memory_query</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:var(--ollama)">
+        <span class="tg-dot" style="background:var(--ollama)"></span>Graph
+      </div>
+      <ul class="tool-list">
+        <li>memory_connect</li>
+        <li>memory_expand</li>
+        <li>memory_adopt</li>
+        <li>memory_diagnose</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:#f87171">
+        <span class="tg-dot" style="background:#f87171"></span>Mutations
+      </div>
+      <ul class="tool-list">
+        <li>memory_correct</li>
+        <li>memory_forget</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:#94a3b8">
+        <span class="tg-dot" style="background:#94a3b8"></span>Maintenance
+      </div>
+      <ul class="tool-list">
+        <li>memory_summarize</li>
+        <li>memory_resummarize</li>
+        <li>memory_status</li>
+        <li>memory_verify</li>
+        <li>memory_consolidate</li>
+        <li>memory_sleep</li>
+        <li>memory_projects</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:var(--app)">
+        <span class="tg-dot" style="background:var(--app)"></span>Episodes
+      </div>
+      <ul class="tool-list">
+        <li>memory_episode_start</li>
+        <li>memory_episode_end</li>
+        <li>memory_episode_list</li>
+        <li>memory_episode_recall</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:var(--ollama)">
+        <span class="tg-dot" style="background:var(--ollama)"></span>Embedder
+      </div>
+      <ul class="tool-list">
+        <li>memory_migrate_embedder</li>
+        <li>memory_models</li>
+        <li>memory_embedding_eval</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:#34d399">
+        <span class="tg-dot" style="background:#34d399"></span>Import / Export
+      </div>
+      <ul class="tool-list">
+        <li>memory_export_all</li>
+        <li>memory_import_claudemd</li>
+        <li>memory_ingest</li>
+        <li>memory_ingest_export</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:var(--green)">
+        <span class="tg-dot" style="background:var(--green)"></span>Feedback &amp; Audit
+      </div>
+      <ul class="tool-list">
+        <li>memory_feedback</li>
+        <li>memory_aggregate</li>
+        <li>memory_audit_add_query</li>
+        <li>memory_audit_list_queries</li>
+        <li>memory_audit_deactivate_query</li>
+        <li>memory_audit_run</li>
+        <li>memory_audit_compare</li>
+        <li>memory_weight_history</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:#f87171">
+        <span class="tg-dot" style="background:#f87171"></span>Safety &amp; Constraints
+      </div>
+      <ul class="tool-list">
+        <li>get_constraints</li>
+        <li>check_constraints</li>
+        <li>verify_before_acting</li>
+      </ul>
+    </div>
+
+    <div class="tool-group">
+      <div class="tg-header" style="color:var(--claude)">
+        <span class="tg-dot" style="background:var(--claude)"></span>Claude-Required (opt-in)
+      </div>
+      <ul class="tool-list">
+        <li>memory_reason</li>
+        <li>memory_explore</li>
+        <li>memory_query_document</li>
+        <li>memory_ask</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── NARRATIVE ─────────────────────────────────────────────────────── -->
+<section>
+  <h2 class="h-arch">How It All Fits Together</h2>
+  <p>Engram's design philosophy is <strong>locality first</strong>. All three containers run on the same Docker host, communicating over a private bridge network with no external exposure beyond port 8788. The Ollama container is bound to <code>127.0.0.1</code> — it is invisible to the wider network even if the host firewall is misconfigured.</p>
+  <p>When an AI client like Claude Code wants to store a memory, it calls <code>memory_store</code> over the MCP connection. The Go application receives the request, embeds the content by calling Ollama's REST API (<code>/api/embed</code>), chunks the text into sentence windows, and writes both the memory record and the chunk embeddings to PostgreSQL in a single transaction. The pgvector HNSW index makes future <code>memory_recall</code> calls — which combine ANN vector search with full-text <code>ts_rank</code> scoring — complete in under 5 ms even with hundreds of thousands of stored memories.</p>
+  <p>The <strong>episodic layer</strong> (migration 008) binds every SSE session to a named episode so that memories from a single working session can be retrieved as a chronological unit — useful for session summaries and context recovery after compaction. The <strong>relationship graph</strong> (relationships table) lets the application infer semantic connections between memories using <code>memory_sleep</code>, which runs a background consolidation pass and creates typed directed edges between semantically related entries.</p>
+  <p>The optional Claude API integration adds four additional tools that synthesise stored memories into grounded natural-language answers. These are off by default and activated per-project via environment flags, so the system remains fully functional on a fully air-gapped host with only the Ollama models available.</p>
+</section>
+
+</div><!-- /page -->
 
 <footer>
-  <span>engram-go &middot; yourai.com</span>
-  <span>2026-04-29 &middot; internal</span>
+  <strong style="color:var(--text)">engram-go</strong> · self-hosted semantic memory for AI assistants ·
+  PostgreSQL + pgvector + Ollama (AMD ROCm) + Go MCP server ·
+  <span style="font-family:'JetBrains Mono',monospace;color:var(--app)">localhost:8788/mcp</span>
 </footer>
 
-</div>
 </body>
 </html>
