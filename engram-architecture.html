@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>engram-go — System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0a0b14; --plasma: #6c63ff; --signal: #00d4aa;
+    --bone: #e8e6f0; --dim: #4a4860; --ember: #ff6b6b;
+    --card: #13141f; --border: #1e1f30;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--void); color: var(--bone); font-family: 'Inter', sans-serif;
+         font-size: 15px; line-height: 1.7; padding: 0 20px 60px; }
+  .page { max-width: 860px; margin: 0 auto; }
+  header { border-bottom: 1px solid var(--border); padding: 48px 0 32px; margin-bottom: 48px; }
+  header h1 { font-size: 36px; font-weight: 700; color: var(--bone); letter-spacing: -0.5px; }
+  header h1 span { color: var(--plasma); }
+  .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim);
+          letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; }
+  h2 { font-size: 20px; font-weight: 700; color: var(--bone); margin: 48px 0 16px;
+       padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 14px; font-weight: 600; color: var(--plasma); text-transform: uppercase;
+       letter-spacing: 1px; margin: 28px 0 10px; }
+  p { color: #b8b6c8; margin-bottom: 16px; }
+  strong { color: var(--bone); }
+  pre { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--plasma);
+        border-radius: 4px; padding: 20px 24px; margin: 20px 0; overflow-x: auto;
+        font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: var(--bone); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 13px;
+         background: var(--card); border: 1px solid var(--border);
+         padding: 1px 6px; border-radius: 3px; color: var(--signal); }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  th { background: var(--card); color: var(--dim); font-family: 'JetBrains Mono', monospace;
+       font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;
+       padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #b8b6c8; vertical-align: top; }
+  td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--signal); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  .callout { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--signal);
+             border-radius: 4px; padding: 16px 20px; margin: 20px 0; }
+  .callout p { margin: 0; }
+  .decision { background: var(--card); border: 1px solid var(--border); border-radius: 4px;
+              padding: 16px 20px; margin: 12px 0; }
+  .decision-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim);
+                 text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .decision-q { font-size: 14px; font-weight: 600; color: var(--bone); margin-bottom: 6px; }
+  .decision-a { font-size: 14px; color: #b8b6c8; }
+  .decision-a strong { color: var(--signal); }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border);
+           font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim);
+           display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1><span>engram</span>-go &mdash; System Architecture</h1>
+  <div class="meta">yourai.com &middot; internal technical reference &middot; 2026-04-29</div>
+</header>
+
+<h2>Overview</h2>
+<p>engram-go is the memory layer powering yourai.com. It stores, indexes, and retrieves memories for AI agents using PostgreSQL with pgvector for semantic search, Ollama for local embeddings, and a multi-tenant ownership model enforced at the database engine level via Row Level Security.</p>
+<p>The system exposes two transports: an MCP (Model Context Protocol) server over SSE for AI clients such as Claude Code, and a REST API for web clients that cannot speak MCP natively. Both transports share the same service layer and the same database. Same memory, different wire format.</p>
+
+<div class="callout">
+  <p><strong>Single-user and multi-tenant in one binary.</strong> Existing single-user deployments require zero configuration changes. <code>ENGRAM_API_KEY</code> bootstraps a default owner on every startup &mdash; this is permanent infrastructure, not a migration shim.</p>
+</div>
+
+<h2>Component Map</h2>
+<pre>
++---------------------------------------------------------------+
+|  Clients                                                      |
+|  yourai.com  |  mobile / REST  |  third-party  |  Claude Code |
++-------+---------------------------------------+---------------+
+        | Bearer token                          | MCP / SSE
+        v                                       |
++-------------------------------+               |
+|  REST API                     |               |
+|  internal/rest/               |               |
+|  SHA256(token) -> owner_id    |               |
+|  LRU cache . 1h TTL           |               |
+|  HTTP concerns only           |               |
++---------------+---------------+               |
+                |                               |
+                +---------------+---------------+
+                                |
+                                v
++---------------------------------------------------------------+
+|  Service Layer  .  internal/service/                          |
+|  Shared by REST and MCP. Owner-scoped queries.                |
+|  SET LOCAL app.current_owner_id per transaction               |
++---------------------------------------------------------------+
+                                |
+                                v
++---------------------------------------------------------------+
+|  PostgreSQL + pgvector + Row Level Security                   |
+|                                                               |
+|  memories . chunks . episodes . relationships . documents     |
+|                                                               |
+|  Every table carries owner_id. RLS enforces isolation at      |
+|  the engine -- no cross-owner rows regardless of query path.  |
+|                                                               |
+|  PgBouncer . transaction mode                                 |
+|  SET LOCAL resets on transaction end (pool-safe)              |
++---------------------------------------------------------------+
+                                |
+                                v
++---------------------------------------------------------------+
+|  Ollama  .  qwen3-embedding:8b                                |
+|  MRL truncation to 1024 dims . pgvector column vector(1024)   |
+|  Shared single instance per deployment                        |
++---------------------------------------------------------------+
+</pre>
+
+<h2>REST API Surface</h2>
+<p>Minimum viable surface for yourai.com. Auth is Bearer token on every request.</p>
+<table>
+  <tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
+  <tr><td>POST</td><td>/v1/memories</td><td>Store a memory for the authenticated owner</td></tr>
+  <tr><td>POST</td><td>/v1/recall</td><td>Semantic + full-text recall across owner's memories</td></tr>
+  <tr><td>GET</td><td>/v1/memories/{id}</td><td>Fetch a specific memory by ID</td></tr>
+  <tr><td>PATCH</td><td>/v1/memories/{id}</td><td>Correct content, tags, or importance weight</td></tr>
+  <tr><td>POST</td><td>/v1/memories/{id}/connect</td><td>Create a typed relationship between two memories</td></tr>
+  <tr><td>GET</td><td>/v1/projects</td><td>List the owner's projects</td></tr>
+</table>
+
+<div class="callout">
+  <p><strong>Architectural constraint:</strong> REST handlers in <code>internal/rest/</code> call <code>internal/service/</code> only. No MCP-specific types may appear in the REST package. A future Rust gateway becomes a translation job (~200 lines), not a rewrite.</p>
+</div>
+
+<h2>Multi-Tenant Owner Model</h2>
+
+<h3>Identity</h3>
+<p>Every API request carries a Bearer token. The auth middleware computes <code>SHA256(token)</code>, looks it up in <code>api_keys</code>, and places <code>owner_id</code> into the request context. An in-process LRU cache (TTL: <code>ENGRAM_AUTH_CACHE_TTL</code>, default 1 hour) avoids re-hashing on every call. Revocation calls <code>cache.Delete</code> immediately &mdash; it does not wait for TTL expiry.</p>
+
+<h3>Database isolation</h3>
+<p>The service layer issues <code>SET LOCAL app.current_owner_id = $1</code> at the start of every transaction. RLS policies on all data tables use this session variable to filter rows. No query can return rows belonging to a different owner. PgBouncer in transaction mode is confirmed safe: <code>SET LOCAL</code> resets when the transaction ends, which is also when PgBouncer returns the connection to the pool.</p>
+
+<h3>Project scoping</h3>
+<p>Projects are free-form labels, unique per <code>(owner_id, project)</code> pair. Two owners can both use the project name <code>"default"</code> with no collision. Owner identity is resolved from the Bearer token &mdash; callers never prefix project names, and the API is unchanged for existing single-user deployments.</p>
+
+<h3>Billing model</h3>
+<table>
+  <tr><th>billing_model</th><th>anthropic_key_secret_ref</th><th>Who</th></tr>
+  <tr><td>claude_code</td><td>NULL</td><td>Self-hosted, developers, open source</td></tr>
+  <tr><td>byok</td><td>Customer-supplied key ref</td><td>Enterprise with Anthropic agreements</td></tr>
+  <tr><td>platform</td><td>yourai.com-managed</td><td>Consumer SaaS &mdash; yourai absorbs API cost</td></tr>
+</table>
+
+<h2>Key Schema &mdash; api_keys</h2>
+<p>Keys are never hard-deleted. Revocation sets <code>revoked_at</code>. The table is a permanent forensic record.</p>
+<pre>
+CREATE TABLE api_keys (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id      UUID NOT NULL REFERENCES owners(id),
+  key_hash      TEXT NOT NULL UNIQUE,   -- SHA256(bearer_token)
+  display_name  TEXT,
+  revoked_at    TIMESTAMPTZ,            -- NULL = active
+  last_used_at  TIMESTAMPTZ,            -- updated async on auth
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+</pre>
+
+<h2>Embedding Stack</h2>
+<table>
+  <tr><th>Component</th><th>Value</th></tr>
+  <tr><td>Model</td><td>qwen3-embedding:8b</td></tr>
+  <tr><td>Technique</td><td>MRL (Matryoshka Representation Learning) truncation</td></tr>
+  <tr><td>Native dims</td><td>4096</td></tr>
+  <tr><td>Stored dims</td><td>1024 &mdash; ENGRAM_EMBED_DIMENSIONS=1024</td></tr>
+  <tr><td>pgvector column</td><td>vector(1024)</td></tr>
+  <tr><td>Index type</td><td>HNSW</td></tr>
+  <tr><td>Ollama endpoint</td><td>http://ollama:11434 (shared, single instance)</td></tr>
+</table>
+
+<h2>Locked Architectural Decisions</h2>
+
+<div class="decision">
+  <div class="decision-id">D1 &middot; Language</div>
+  <div class="decision-q">What language for new services?</div>
+  <div class="decision-a"><strong>Go core stays. New standalone services default to Rust.</strong> engram-go is mature Go. Rust for new boundary services for performance and safety.</div>
+</div>
+<div class="decision">
+  <div class="decision-id">D2 &middot; Database placement</div>
+  <div class="decision-q">Where does the database live?</div>
+  <div class="decision-a"><strong>External to the app cluster always.</strong> App containers are ephemeral. DB state must survive container rebuilds and K8s pod restarts. TruNAS:5433 for homelab; Aurora for production.</div>
+</div>
+<div class="decision">
+  <div class="decision-id">D3 &middot; Container images</div>
+  <div class="decision-q">Which container base images?</div>
+  <div class="decision-a"><strong>Chainguard hardened distroless images.</strong> Minimal CVE surface, no shell in production, supply chain provenance.</div>
+</div>
+<div class="decision">
+  <div class="decision-id">D4 &middot; Data isolation</div>
+  <div class="decision-q">How is owner isolation enforced?</div>
+  <div class="decision-a"><strong>PostgreSQL RLS &mdash; not application-layer filters alone.</strong> Application-layer filters can be bypassed by bugs or missing middleware. RLS enforces isolation at the DB engine level regardless of how a query arrives.</div>
+</div>
+<div class="decision">
+  <div class="decision-id">D5 &middot; Audit log</div>
+  <div class="decision-q">How is the audit log written?</div>
+  <div class="decision-a"><strong>Embedded, atomic with the operation it records.</strong> Audit entries are written in the same transaction as the operation. Append-only table.</div>
+</div>
+<div class="decision">
+  <div class="decision-id">D6 &middot; Connection pooling</div>
+  <div class="decision-q">PgBouncer and SET LOCAL behavior?</div>
+  <div class="decision-a"><strong>PgBouncer transaction mode. SET LOCAL confirmed safe.</strong> Resets at transaction end = pool return point. RDS Proxy behavior with SET LOCAL is untested &mdash; POC required before Aurora production cutover.</div>
+</div>
+<div class="decision">
+  <div class="decision-id">D7 &middot; Anthropic API keys</div>
+  <div class="decision-q">How do tenants supply Anthropic API keys?</div>
+  <div class="decision-a"><strong>BYOK + platform-absorbed.</strong> <code>billing_model</code> enum on the <code>owners</code> table. NULL <code>anthropic_key_secret_ref</code> implies <code>claude_code</code> subscription mode.</div>
+</div>
+
+<h2>Deployment Stack</h2>
+<table>
+  <tr><th>Component</th><th>Technology</th></tr>
+  <tr><td>App runtime</td><td>Go 1.22+, Chainguard distroless image</td></tr>
+  <tr><td>MCP transport</td><td>mark3labs/mcp-go v0.45.0, SSE, port 8788</td></tr>
+  <tr><td>Database</td><td>PostgreSQL 17 + pgvector, Chainguard image</td></tr>
+  <tr><td>Embeddings</td><td>Ollama, qwen3-embedding:8b, AMD GPU</td></tr>
+  <tr><td>Connection pooler</td><td>PgBouncer, transaction mode</td></tr>
+  <tr><td>Secrets</td><td>Infisical</td></tr>
+  <tr><td>Homelab DB</td><td>TruNAS Scale, port 5433, ZFS recordsize=8K</td></tr>
+  <tr><td>Production DB target</td><td>AWS Aurora PostgreSQL (SET LOCAL POC pending)</td></tr>
+  <tr><td>Orchestration</td><td>Kubernetes, Traefik, cert-manager, Cloudflare DNS01</td></tr>
+</table>
+
+<h2>Tool Dispatch Timeout</h2>
+<p>All MCP tool handlers wrap execution in <code>context.WithTimeout</code> with a default of 15 seconds. Context propagation through mcp-go's in-process transport was validated via a spike test (PR #381): a blocking handler cancelled correctly within 300ms. Timed-out tools return <code>IsError: true</code> with a human-readable message rather than hanging the SSE connection.</p>
+
+<footer>
+  <span>engram-go &middot; yourai.com</span>
+  <span>2026-04-29 &middot; internal</span>
+</footer>
+
+</div>
+</body>
+</html>
