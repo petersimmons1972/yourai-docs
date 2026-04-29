@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YourAI.com — The Modern Legal Intelligence Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1008;
+    --cream: #f5eed8;
+    --aged: #e8dcc0;
+    --tan: #c9b990;
+    --rust: #8b3a1e;
+    --navy: #1c2b4a;
+    --gold: #b8922a;
+    --red: #9e2a1a;
+    --green: #2a5c3f;
+    --mid-gray: #6b5f50;
+    --light-ink: #3a2d1e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #c4b48a;
+    font-family: 'Libre Baskerville', serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 20px;
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(0,0,0,0.03) 28px, rgba(0,0,0,0.03) 29px);
+  }
+
+  .paper {
+    max-width: 960px;
+    margin: 0 auto;
+    background: var(--cream);
+    box-shadow: 4px 4px 0 #8a7a5a, 8px 8px 0 #6a5a3a, 12px 12px 20px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .paper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* MASTHEAD */
+  .masthead {
+    background: var(--navy);
+    color: var(--cream);
+    text-align: center;
+    padding: 12px 20px 8px;
+    border-bottom: 4px double var(--gold);
+    position: relative;
+  }
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--tan);
+    margin-bottom: 8px;
+  }
+  .pub-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .masthead h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--cream);
+    text-shadow: 2px 2px 0 var(--gold);
+  }
+  .masthead h1 span { color: var(--gold); }
+  .masthead-sub {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--tan);
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+  .issue-bar {
+    background: var(--rust);
+    color: var(--cream);
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 5px 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* HERO SECTION */
+  .hero {
+    padding: 30px 40px 20px;
+    border-bottom: 3px double var(--tan);
+    position: relative;
+  }
+  .hero-kicker {
+    font-family: 'Courier Prime', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 10px;
+  }
+  .hero h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 44px;
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--navy);
+    margin-bottom: 12px;
+    max-width: 700px;
+  }
+  .hero-deck {
+    font-family: 'IM Fell English', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--light-ink);
+    line-height: 1.5;
+    max-width: 680px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--rust);
+    padding-left: 16px;
+  }
+  .byline-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--mid-gray);
+  }
+  .byline-bar::before, .byline-bar::after {
+    content: ''; flex: 1; height: 1px; background: var(--tan);
+  }
+
+  /* COLUMNS */
+  .content-area {
+    padding: 0 40px 40px;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    border-bottom: 2px solid var(--tan);
+    margin: 0 -40px;
+    padding: 0 40px;
+  }
+  .col {
+    padding: 24px 20px;
+    border-right: 1px solid var(--tan);
+  }
+  .col:last-child { border-right: none; }
+  .col:first-child { padding-left: 0; }
+  .col:last-child { padding-right: 0; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    margin-top: 28px;
+  }
+  .two-col-equal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 28px;
+  }
+
+  /* TYPOGRAPHY */
+  h3.section-head {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  h4.col-head {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--tan);
+    padding-bottom: 4px;
+  }
+  p {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--ink);
+    margin-bottom: 10px;
+    text-align: justify;
+    hyphens: auto;
+  }
+  p.dropcap::first-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 900;
+    float: left;
+    line-height: 0.75;
+    margin: 8px 8px 0 0;
+    color: var(--navy);
+  }
+
+  /* PULL QUOTES */
+  .pull-quote {
+    border-top: 3px solid var(--navy);
+    border-bottom: 3px solid var(--navy);
+    padding: 16px 0;
+    margin: 20px 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-style: italic;
+    color: var(--navy);
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .callout-box {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 18px 20px;
+    margin: 20px 0;
+  }
+  .callout-box h5 {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .callout-box p {
+    color: var(--cream);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .warning-box {
+    background: var(--aged);
+    border: 2px solid var(--rust);
+    padding: 16px 20px;
+    margin: 20px 0;
+  }
+  .warning-box h5 {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 6px;
+  }
+  .warning-box p { font-size: 12px; }
+
+  /* DIVIDERS */
+  .section-rule {
+    border: none;
+    border-top: 3px double var(--navy);
+    margin: 28px 0 20px;
+  }
+  .ornament {
+    text-align: center;
+    color: var(--gold);
+    font-size: 20px;
+    letter-spacing: 12px;
+    margin: 16px 0;
+  }
+
+  /* CHARTS */
+  .chart-container {
+    background: var(--aged);
+    border: 1px solid var(--tan);
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .chart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 4px;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .chart-subtitle {
+    font-family: 'Courier Prime', monospace;
+    font-size: 9px;
+    text-align: center;
+    color: var(--mid-gray);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  /* BAR CHART */
+  .bar-chart { width: 100%; }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .bar-label {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    width: 110px;
+    flex-shrink: 0;
+    text-align: right;
+    color: var(--light-ink);
+  }
+  .bar-track {
+    flex: 1;
+    background: var(--tan);
+    height: 22px;
+    position: relative;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+  .bar-fill {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 6px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cream);
+    transition: width 0.3s ease;
+  }
+  .bar-fill.navy { background: var(--navy); }
+  .bar-fill.rust { background: var(--rust); }
+  .bar-fill.gold { background: var(--gold); }
+  .bar-fill.green { background: var(--green); }
+  .bar-fill.yourai { background: var(--rust); border-right: 3px solid var(--gold); }
+
+  /* RADAR / SPIDER CHART (SVG) */
+  .svg-chart { width: 100%; }
+
+  /* COMPARISON TABLE */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Courier Prime', monospace;
+    font-size: 11px;
+  }
+  .comp-table th {
+    background: var(--navy);
+    color: var(--gold);
+    padding: 8px 10px;
+    text-align: left;
+    letter-spacing: 1px;
+    font-size: 10px;
+    text-transform: uppercase;
+    border-right: 1px solid rgba(255,255,255,0.2);
+  }
+  .comp-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--tan);
+    border-right: 1px solid var(--tan);
+    vertical-align: middle;
+    font-size: 11px;
+  }
+  .comp-table tr:nth-child(even) td { background: rgba(0,0,0,0.03); }
+  .comp-table tr.highlight td { background: rgba(139,58,30,0.08); font-weight: 700; }
+  .check { color: var(--green); font-weight: 700; }
+  .cross { color: var(--rust); }
+  .partial { color: var(--gold); }
+
+  /* ARCHITECTURE DIAGRAM */
+  .arch-diagram {
+    background: var(--navy);
+    padding: 24px;
+    margin: 20px 0;
+    font-family: 'Courier Prime', monospace;
+  }
+  .arch-title {
+    color: var(--gold);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 10px;
+  }
+  .arch-layer {
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .arch-layer-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .arch-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .arch-item {
+    background: rgba(255,255,255,0.1);
+    color: var(--cream);
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .arch-item.highlight { background: var(--rust); border-color: var(--rust); }
+  .arch-item.gold { background: rgba(184,146,42,0.3); border-color: var(--gold); color: var(--gold); }
+  .arch-arrow {
+    text-align: center;
+    color: var(--gold);
+    font-size: 16px;
+    margin: 4px 0;
+  }
+
+  /* RISK MATRIX */
+  .risk-matrix {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+    margin-top: 10px;
+  }
+  .risk-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier Prime', monospace;
+    font-size: 8px;
+    text-align: center;
+    padding: 4px;
+    line-height: 1.2;
+  }
+  .risk-low { background: #d4e8d4; color: #1a4a1a; }
+  .risk-med { background: #f0e0a0; color: #5a4000; }
+  .risk-high { background: #f0c0a0; color: #5a1a00; }
+  .risk-crit { background: #e08080; color: #3a0000; }
+  .risk-header { background: var(--navy); color: var(--cream); font-size: 9px; }
+  .risk-axis { 
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier Prime', monospace; font-size: 9px; 
+    writing-mode: vertical-rl; text-orientation: mixed;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--mid-gray);
+    padding: 8px 0;
+  }
+
+  /* FOOTER */
+  .page-footer {
+    background: var(--navy);
+    color: var(--tan);
+    padding: 12px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-top: 4px double var(--gold);
+  }
+
+  /* SECTION HEADERS */
+  .full-width-head {
+    background: var(--navy);
+    color: var(--cream);
+    margin: 0 -40px;
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .full-width-head h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cream);
+  }
+  .full-width-head .section-num {
+    font-family: 'Courier Prime', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .full-width-head .section-sub {
+    font-family: 'IM Fell English', serif;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--tan);
+  }
+
+  ul.editorial-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+  }
+  ul.editorial-list li {
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 4px 0 4px 20px;
+    border-bottom: 1px dotted var(--tan);
+    position: relative;
+    text-align: left;
+  }
+  ul.editorial-list li::before {
+    content: '◆';
+    position: absolute;
+    left: 0;
+    color: var(--rust);
+    font-size: 8px;
+    top: 6px;
+  }
+
+  .stamp {
+    display: inline-block;
+    border: 3px solid var(--rust);
+    color: var(--rust);
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    transform: rotate(-2deg);
+    opacity: 0.8;
+    margin: 8px 0;
+  }
+
+  .footnote {
+    font-family: 'Courier Prime', monospace;
+    font-size: 9px;
+    color: var(--mid-gray);
+    border-top: 1px solid var(--tan);
+    padding-top: 8px;
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 700px) {
+    .three-col, .two-col, .two-col-equal { grid-template-columns: 1fr; }
+    .masthead h1 { font-size: 36px; }
+    .hero h2 { font-size: 28px; }
+    .content-area { padding: 0 20px 30px; }
+    .full-width-head { margin: 0 -20px; padding: 12px 20px; }
+    .three-col { margin: 0 -20px; padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+<article class="paper">
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <span>Est. 2025</span>
+      <span>Investor Technical Briefing Series</span>
+      <span>Vol. I &bull; No. 4</span>
+    </div>
+    <div class="pub-title">The Legal Intelligence Review</div>
+    <h1>Your<span>AI</span>.com</h1>
+    <div class="masthead-sub">The Modern Practitioner's Guide to Secure Artificial Intelligence</div>
+  </header>
+  <div class="issue-bar">
+    <span>Spring 2025 &mdash; Investor Edition</span>
+    <span>Confidential &bull; Not for Distribution</span>
+    <span>yourai.com &bull; Technology Briefing</span>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-kicker">&#9670; Feature Report &#9670; Security Architecture &#9670; Market Positioning</div>
+    <h2>The Privileged Machine: Building an AI Legal Platform That Opposing Counsel Cannot Touch</h2>
+    <p class="hero-deck">How YourAI.com delivers the power of frontier artificial intelligence to the small and mid-sized law firm — wrapped in a fortress of zero-retention data handling, row-level database isolation, and layered security that would satisfy even the most skeptical managing partner.</p>
+    <div class="byline-bar">
+      <span>By the YourAI.com Technical Team &mdash; For Investor Review</span>
+    </div>
+  </section>
+
+  <!-- OPENING THREE-COL -->
+  <div class="content-area">
+    <div class="three-col">
+      <div class="col">
+        <h4 class="col-head">The Opportunity</h4>
+        <p class="dropcap">The American legal profession comprises some 450,000 law firms. Fewer than 400 of those firms are what one might call "BigLaw" — the Am Law 200 bracket already served by Harvey, CoCounsel, and Lexis+. The remaining 449,600 firms — the solos, the boutiques, the regional practitioners of the mid-market — have been left to fend for themselves with consumer-grade AI tools wholly unsuited to the ethical obligations of the bar.</p>
+        <p>This is the market YourAI.com was built to serve.</p>
+      </div>
+      <div class="col">
+        <h4 class="col-head">The Problem</h4>
+        <p>A lawyer in Marietta, Georgia who pastes a client's settlement agreement into ChatGPT's free tier has just transmitted privileged communications to a server that, by default, may retain that data for up to five years and use it to train a public model. She has, in all likelihood, violated Model Rule 1.6 — and she does not know it.</p>
+        <p>Consumer AI is a confidentiality trap. Enterprise AI costs $50,000 per year minimums. YourAI.com closes that gap.</p>
+      </div>
+      <div class="col">
+        <h4 class="col-head">Our Thesis</h4>
+        <p>Security is not a feature. It is the product. The attorney who chooses YourAI.com is not buying convenience — she is buying a system that has been architecturally designed, from the ground up, to honor her ethical obligations, protect her clients, and ensure that no adverse party can weaponize her AI usage against her in discovery.</p>
+        <div class="stamp">Confidential</div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: DATA SOVEREIGNTY -->
+    <div class="full-width-head" style="margin-top: 28px;">
+      <span class="section-num">I.</span>
+      <div>
+        <h3>Data Sovereignty &amp; The Anthropic Zero-Retention Guarantee</h3>
+        <div class="section-sub">Understanding what the API contract actually provides — and what it does not</div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top: 24px;">
+      <div>
+        <p class="dropcap">When YourAI.com communicates with Anthropic's Claude models, it does so exclusively through the commercial Application Programming Interface — never through a consumer account. This distinction is not cosmetic. It is the difference between client data residing in a training corpus and client data being processed and discarded.</p>
+
+        <p>The Anthropic commercial API operates under terms that explicitly prohibit the use of customer inputs for model training. As of September 2025, API log retention was reduced from thirty days to a mere seven days, after which all data is automatically and permanently deleted from Anthropic's infrastructure. YourAI.com will execute the optional Zero Data Retention addendum available to enterprise API customers, reducing that window to zero: no logs, no retention, no retrievable record.</p>
+
+        <div class="pull-quote">"No logs. No retention. No record. The API call arrives, the model responds, and the data vanishes — contractually and technically."</div>
+
+        <p>This matters enormously for the question of adversarial discovery. The Federal Rules of Civil Procedure permit a party to subpoena records from third parties. But one cannot subpoena records that do not exist. Under Zero Data Retention, Anthropic holds nothing — no prompt, no response, no metadata — that could be compelled by opposing counsel or produced pursuant to a warrant.</p>
+
+        <h4 class="col-head" style="margin-top: 16px;">What ZDR Actually Prevents</h4>
+        <ul class="editorial-list">
+          <li>Rule 45 subpoenas to Anthropic seeking chat logs</li>
+          <li>Government warrants compelling production of API session data</li>
+          <li>Adversarial forensic reconstruction of attorney work product via third-party records</li>
+          <li>Accidental privilege waiver through third-party document exposure</li>
+          <li>Regulatory subpoenas from bar disciplinary authorities</li>
+        </ul>
+      </div>
+      <div>
+        <div class="chart-container">
+          <div class="chart-title">Data Retention Windows by Provider</div>
+          <div class="chart-subtitle">Days of log retention at vendor infrastructure &bull; Lower is better</div>
+          <div class="bar-chart">
+            <div class="bar-row">
+              <span class="bar-label">ChatGPT Free</span>
+              <div class="bar-track">
+                <div class="bar-fill navy" style="width:100%">5 Years</div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Gemini Pro</span>
+              <div class="bar-track">
+                <div class="bar-fill navy" style="width:72%">18 mo.</div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Harvey AI</span>
+              <div class="bar-track">
+                <div class="bar-fill gold" style="width:30%">Per DPA</div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">CoCounsel</span>
+              <div class="bar-track">
+                <div class="bar-fill gold" style="width:30%">Per DPA</div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Claude API (std)</span>
+              <div class="bar-track">
+                <div class="bar-fill green" style="width:10%">7 Days</div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label" style="font-weight:700;color:var(--rust)">YourAI.com (ZDR)</span>
+              <div class="bar-track">
+                <div class="bar-fill yourai" style="width:5%">ZERO</div>
+              </div>
+            </div>
+          </div>
+          <p class="footnote">&#9670; Sources: Anthropic Privacy Center (Sept 2025); OpenAI Enterprise Terms; Google Workspace DPA. Consumer plans reflect default training-enabled retention. Harvey/CoCounsel DPA terms vary by contract. YourAI.com utilizes Anthropic Zero Data Retention addendum.</p>
+        </div>
+
+        <div class="callout-box">
+          <h5>&#9670; Legal Significance</h5>
+          <p>Under Fed. R. Civ. P. 45(d), a subpoena to a non-party must be quashed if it "requires disclosure of privileged or other protected matter." With ZDR active, the threshold question — does the record exist? — answers itself in the negative. Opposing counsel is left with no avenue of attack through Anthropic.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: DATABASE ARCHITECTURE -->
+    <hr class="section-rule">
+    <div class="full-width-head">
+      <span class="section-num">II.</span>
+      <div>
+        <h3>The Embedded Intelligence Engine: Vectors, Memory, and Iron-Clad Isolation</h3>
+        <div class="section-sub">How we make the AI remember — without letting it remember too much</div>
+      </div>
+    </div>
+
+    <div class="two-col-equal" style="margin-top: 24px;">
+      <div>
+        <p class="dropcap">At the heart of the YourAI.com platform lies a vector database — a specialized data store that converts legal documents, case notes, contract clauses, and correspondence into mathematical representations called embeddings. These embeddings allow the AI to perform semantic search: finding the most relevant prior matter, the most analogous precedent, the most similar clause — even when exact keywords do not match.</p>
+
+        <p>The embedding model — a dedicated component of our infrastructure, running via the Anthropic API — processes documents and stores only their vector representations. The raw text is retained in our encrypted document store; the embeddings live in the vector layer. Neither crosses the boundary of the other without explicit authorization.</p>
+
+        <h4 class="col-head" style="margin-top: 14px;">Row-Level Security: The Architectural Guarantee</h4>
+        <p>Every record in every table of the YourAI.com database is tagged with a <strong>firm_id</strong>, a <strong>matter_id</strong>, and a <strong>user_id</strong>. PostgreSQL Row-Level Security (RLS) policies enforce at the database engine level — not the application layer — that a query can only ever return rows belonging to the authenticated session's firm and matter context.</p>
+
+        <p>This means even a catastrophic application bug cannot cause data leakage across firm boundaries. The database engine itself enforces the isolation wall. A developer cannot write a query that inadvertently returns Firm A's documents to Firm B's attorney.</p>
+
+        <div class="callout-box">
+          <h5>&#9670; The Five Isolation Guarantees</h5>
+          <p>1. Database RLS — enforced at engine level, not application<br>
+          2. Embedding namespace segregation — vectors partitioned by firm_id<br>
+          3. API session context — system prompt carries matter context, never crossed<br>
+          4. Anthropic ZDR — no cross-contamination possible at vendor<br>
+          5. Container isolation — each firm's services run in separate namespaces</p>
+        </div>
+      </div>
+      <div>
+        <div class="arch-diagram">
+          <div class="arch-title">&#9670; YourAI.com Security Architecture &#9670;</div>
+
+          <div class="arch-layer">
+            <div class="arch-layer-label">&#9654; Client Layer</div>
+            <div class="arch-items">
+              <span class="arch-item">Browser / App (TLS 1.3)</span>
+              <span class="arch-item">JWT Auth</span>
+              <span class="arch-item">MFA Required</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&#8595;</div>
+
+          <div class="arch-layer">
+            <div class="arch-layer-label">&#9654; Edge &amp; DLP Layer</div>
+            <div class="arch-items">
+              <span class="arch-item highlight">Prompt Injection Filter</span>
+              <span class="arch-item highlight">DLP Scanner</span>
+              <span class="arch-item">WAF / Rate Limiter</span>
+              <span class="arch-item">Secrets Detector</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&#8595;</div>
+
+          <div class="arch-layer">
+            <div class="arch-layer-label">&#9654; Application Layer (Containerized)</div>
+            <div class="arch-items">
+              <span class="arch-item">Matter Context Injector</span>
+              <span class="arch-item gold">System Prompt Builder</span>
+              <span class="arch-item">Session Isolation</span>
+              <span class="arch-item">Audit Logger</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&#8595;</div>
+
+          <div class="arch-layer">
+            <div class="arch-layer-label">&#9654; Data Layer (Row-Level Security Active)</div>
+            <div class="arch-items">
+              <span class="arch-item highlight">PostgreSQL + RLS</span>
+              <span class="arch-item highlight">pgvector (Firm-Namespaced)</span>
+              <span class="arch-item">Encrypted Doc Store</span>
+              <span class="arch-item">Immutable Audit Log</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&#8595;</div>
+
+          <div class="arch-layer" style="border-color: rgba(184,146,42,0.5);">
+            <div class="arch-layer-label" style="color: #f0c84a;">&#9654; Anthropic API — Zero Data Retention</div>
+            <div class="arch-items">
+              <span class="arch-item gold">Claude (Inference Only)</span>
+              <span class="arch-item gold">Embedding Model</span>
+              <span class="arch-item gold">ZDR Addendum Active</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="footnote">&#9670; Architecture reflects production design targets. Container orchestration via Kubernetes with OPA (Open Policy Agent) for namespace enforcement. All inter-service calls use mTLS. Secrets managed via HashiCorp Vault or equivalent.</p>
+      </div>
+    </div>
+
+    <!-- AI MEMORY SECTION -->
+    <hr class="section-rule">
+    <h3 class="section-head">The Memory Problem: Giving AI a Long Memory Without a Leaky One</h3>
+
+    <div class="two-col">
+      <div>
+        <p>One of the most powerful features of a well-designed legal AI platform is the ability to reason across a firm's entire history — finding the clause that was negotiated last year, recalling how a particular judge ruled on a motion in limine, surfacing the indemnification language that worked in the last three deals for a particular client.</p>
+
+        <p>This requires <em>memory</em>. But memory in an AI system, if implemented carelessly, becomes a confidentiality catastrophe. The solution is a two-layer memory architecture that separates <em>what the AI remembers</em> from <em>who is allowed to ask about it</em>.</p>
+
+        <p><strong>Layer 1 — Retrieval-Augmented Generation (RAG):</strong> When an attorney submits a query, our system first searches the vector database for relevant embeddings within that attorney's authorized matter scope. The top-k results are retrieved and injected into the system prompt as context. The AI never "knows" anything — it only reads what is handed to it, scoped to the current matter.</p>
+
+        <p><strong>Layer 2 — Matter Memory Store:</strong> Each matter has its own persistent context store — a structured record of decisions, positions, key facts, and prior outputs that accumulates over the life of the matter. This store is segregated by matter_id and can only be read by sessions authenticated to that matter. It does not cross matters, and it does not cross firms.</p>
+
+        <div class="warning-box">
+          <h5>&#9670; The Prompt Injection Threat</h5>
+          <p>Opposing counsel's documents will be submitted to this system for review. A sophisticated adversary could embed malicious instructions within a document — a technique known as indirect prompt injection — designed to cause the AI to exfiltrate information, ignore instructions, or behave unexpectedly. YourAI.com implements input sanitization and a dedicated injection detection layer before any document content reaches the model context.</p>
+        </div>
+      </div>
+      <div>
+        <div class="chart-container">
+          <div class="chart-title">Memory System Data Flow</div>
+          <div class="chart-subtitle">Query path through isolated matter context</div>
+          <svg viewBox="0 0 260 320" class="svg-chart">
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#1c2b4a"/>
+              </marker>
+            </defs>
+            <!-- Attorney Query -->
+            <rect x="70" y="10" width="120" height="34" fill="#1c2b4a" rx="2"/>
+            <text x="130" y="23" font-family="Courier Prime, monospace" font-size="9" fill="#f5eed8" text-anchor="middle">ATTORNEY QUERY</text>
+            <text x="130" y="36" font-family="Courier Prime, monospace" font-size="8" fill="#b8922a" text-anchor="middle">matter_id + user_id verified</text>
+            <!-- Arrow -->
+            <line x1="130" y1="44" x2="130" y2="68" stroke="#1c2b4a" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <!-- DLP/Injection -->
+            <rect x="55" y="68" width="150" height="28" fill="#8b3a1e" rx="2"/>
+            <text x="130" y="80" font-family="Courier Prime, monospace" font-size="9" fill="#f5eed8" text-anchor="middle">INJECTION FILTER + DLP</text>
+            <text x="130" y="90" font-family="Courier Prime, monospace" font-size="8" fill="#f0c8a0" text-anchor="middle">Input sanitization</text>
+            <!-- Arrow -->
+            <line x1="130" y1="96" x2="130" y2="118" stroke="#1c2b4a" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <!-- RAG Retrieval -->
+            <rect x="10" y="118" width="110" height="38" fill="#2a5c3f" rx="2"/>
+            <text x="65" y="131" font-family="Courier Prime, monospace" font-size="9" fill="#f5eed8" text-anchor="middle">VECTOR SEARCH</text>
+            <text x="65" y="143" font-family="Courier Prime, monospace" font-size="8" fill="#a0d4b0" text-anchor="middle">pgvector, firm-scoped</text>
+            <text x="65" y="153" font-family="Courier Prime, monospace" font-size="8" fill="#a0d4b0" text-anchor="middle">RLS enforced</text>
+            <!-- Matter Memory -->
+            <rect x="140" y="118" width="110" height="38" fill="#2a5c3f" rx="2"/>
+            <text x="195" y="131" font-family="Courier Prime, monospace" font-size="9" fill="#f5eed8" text-anchor="middle">MATTER MEMORY</text>
+            <text x="195" y="143" font-family="Courier Prime, monospace" font-size="8" fill="#a0d4b0" text-anchor="middle">Persistent context</text>
+            <text x="195" y="153" font-family="Courier Prime, monospace" font-size="8" fill="#a0d4b0" text-anchor="middle">matter_id scoped</text>
+            <!-- Arrows to context -->
+            <line x1="65" y1="156" x2="100" y2="180" stroke="#1c2b4a" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="195" y1="156" x2="160" y2="180" stroke="#1c2b4a" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <!-- Context Assembly -->
+            <rect x="60" y="180" width="140" height="28" fill="#1c2b4a" rx="2"/>
+            <text x="130" y="192" font-family="Courier Prime, monospace" font-size="9" fill="#f5eed8" text-anchor="middle">CONTEXT ASSEMBLY</text>
+            <text x="130" y="202" font-family="Courier Prime, monospace" font-size="8" fill="#b8922a" text-anchor="middle">System prompt injection</text>
+            <!-- Arrow -->
+            <line x1="130" y1="208" x2="130" y2="232" stroke="#1c2b4a" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <!-- Anthropic API -->
+            <rect x="55" y="232" width="150" height="38" fill="#b8922a" rx="2"/>
+            <text x="130" y="246" font-family="Courier Prime, monospace" font-size="9" fill="#1a1008" text-anchor="middle">ANTHROPIC API</text>
+            <text x="130" y="257" font-family="Courier Prime, monospace" font-size="8" fill="#1a1008" text-anchor="middle">ZDR Active — No Logs</text>
+            <text x="130" y="267" font-family="Courier Prime, monospace" font-size="8" fill="#1a1008" text-anchor="middle">No Training on Input</text>
+            <!-- Arrow -->
+            <line x1="130" y1="270" x2="130" y2="294" stroke="#1c2b4a" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <!-- Response -->
+            <rect x="70" y="294" width="120" height="22" fill="#1c2b4a" rx="2"/>
+            <text x="130" y="304" font-family="Courier Prime, monospace" font-size="9" fill="#f5eed8" text-anchor="middle">RESPONSE + AUDIT LOG</text>
+            <text x="130" y="313" font-family="Courier Prime, monospace" font-size="8" fill="#b8922a" text-anchor="middle">Immutable record written</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: COMPETITIVE COMPARISON -->
+    <hr class="section-rule">
+    <div class="full-width-head">
+      <span class="section-num">III.</span>
+      <div>
+        <h3>The Competitive Landscape: Giants, Gaps, and Our Position</h3>
+        <div class="section-sub">Where enterprise players fail the mid-market, and why YourAI.com wins there</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <p>The legal AI market is dominated by players who built their products for the Am Law 200 and priced accordingly. Harvey AI, which raised at a reported $3 billion valuation, has a minimum engagement floor that eliminates the regional firm, the boutique practice, and the solo with aspirations. CoCounsel, now embedded in Thomson Reuters' Westlaw subscription, is priced as an add-on to a research platform that the mid-market firm may not already use. Lexis+ Protégé is only as strong as the firm's existing LexisNexis relationship.</p>
+      <p>YourAI.com targets the 449,600 firms these players do not want.</p>
+    </div>
+
+    <div class="chart-container" style="margin-top: 16px;">
+      <div class="chart-title">Feature Comparison Matrix: Legal AI Platforms</div>
+      <div class="chart-subtitle">YourAI.com vs. Enterprise Incumbents &bull; 2025</div>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Feature / Capability</th>
+            <th>YourAI.com</th>
+            <th>Harvey AI</th>
+            <th>Thomson Reuters CoCounsel</th>
+            <th>Lexis+ Protégé</th>
+            <th>ChatGPT Enterprise</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Zero Data Retention (ZDR)</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="partial">&#9670; Custom DPA</td>
+            <td class="partial">&#9670; Via TR Terms</td>
+            <td class="partial">&#9670; Via RELX</td>
+            <td class="cross">&#10005; No</td>
+          </tr>
+          <tr>
+            <td>No Training on Client Data</td>
+            <td class="check">&#9646; Guaranteed (API)</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="check">&#9646; Enterprise only</td>
+          </tr>
+          <tr>
+            <td>Row-Level DB Security</td>
+            <td class="check">&#9646; Native RLS</td>
+            <td class="partial">&#9670; Unknown</td>
+            <td class="partial">&#9670; Unknown</td>
+            <td class="partial">&#9670; Unknown</td>
+            <td class="cross">&#10005; N/A (no DB)</td>
+          </tr>
+          <tr>
+            <td>Vector Embedding (RAG)</td>
+            <td class="check">&#9646; Firm-scoped</td>
+            <td class="check">&#9646; Yes (Harvey Vault)</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="partial">&#9670; Partial</td>
+            <td class="cross">&#10005; Bring your own</td>
+          </tr>
+          <tr>
+            <td>Matter-Level Isolation</td>
+            <td class="check">&#9646; Architectural</td>
+            <td class="partial">&#9670; Application-level</td>
+            <td class="partial">&#9670; Application-level</td>
+            <td class="partial">&#9670; Application-level</td>
+            <td class="cross">&#10005; None</td>
+          </tr>
+          <tr>
+            <td>Prompt Injection Defense</td>
+            <td class="check">&#9646; Layer 2 Filter</td>
+            <td class="partial">&#9670; Presumed</td>
+            <td class="partial">&#9670; Undisclosed</td>
+            <td class="partial">&#9670; Undisclosed</td>
+            <td class="cross">&#10005; None native</td>
+          </tr>
+          <tr>
+            <td>Immutable Audit Log</td>
+            <td class="check">&#9646; Yes (append-only)</td>
+            <td class="partial">&#9670; Per enterprise DPA</td>
+            <td class="check">&#9646; Via Westlaw</td>
+            <td class="partial">&#9670; Partial</td>
+            <td class="cross">&#10005; No</td>
+          </tr>
+          <tr>
+            <td>SMB / Mid-Market Pricing</td>
+            <td class="check">&#9646; Core Market</td>
+            <td class="cross">&#10005; BigLaw only</td>
+            <td class="cross">&#10005; Westlaw add-on</td>
+            <td class="partial">&#9670; LexisNexis sub req.</td>
+            <td class="partial">&#9670; General purpose</td>
+          </tr>
+          <tr>
+            <td>Bar Ethics Opinion Alignment</td>
+            <td class="check">&#9646; By design</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="check">&#9646; Yes</td>
+            <td class="cross">&#10005; Requires config</td>
+          </tr>
+          <tr class="highlight">
+            <td><strong>Est. Annual Cost (5-user firm)</strong></td>
+            <td><strong>$TBD (SMB tier)</strong></td>
+            <td>$50,000+</td>
+            <td>$25,000+ (w/ Westlaw)</td>
+            <td>$18,000+ (w/ Lexis)</td>
+            <td>$7,500 (no legal spec.)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="footnote">&#9670; Pricing estimates based on publicly available information and industry reports as of early 2025. Harvey minimum engagement based on reported deal sizes. &#9670; = Partial or unconfirmed. Competitor internal architectures are not publicly disclosed; isolation assessments are based on available documentation.</p>
+    </div>
+
+    <!-- MARKET SIZE BAR CHART -->
+    <div class="two-col-equal" style="margin-top: 20px;">
+      <div class="chart-container">
+        <div class="chart-title">Addressable Market by Firm Size</div>
+        <div class="chart-subtitle">U.S. Law Firms &bull; Approximate Distribution</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label">1–5 attorneys</span>
+            <div class="bar-track">
+              <div class="bar-fill navy" style="width:95%">~320,000 firms</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">6–50 attorneys</span>
+            <div class="bar-track">
+              <div class="bar-fill navy" style="width:60%">~105,000 firms</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">51–200 attorneys</span>
+            <div class="bar-track">
+              <div class="bar-fill gold" style="width:15%">~24,000</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="font-size:9px">201–500 attorneys</span>
+            <div class="bar-track">
+              <div class="bar-fill green" style="width:6%">~1,000</div>
+            </div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Am Law 200+</span>
+            <div class="bar-track">
+              <div class="bar-fill rust" style="width:2%">~400</div>
+            </div>
+          </div>
+        </div>
+        <p style="margin-top:10px; font-size:11px; font-style:italic; color:var(--mid-gray)">YourAI.com targets the navy segment — the untouched majority.</p>
+        <p class="footnote">&#9670; American Bar Association 2024 Profile of the Legal Profession. Figures approximate.</p>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Security Posture Score</div>
+        <div class="chart-subtitle">Comparative rating across six security dimensions &bull; 1–10 scale</div>
+        <svg viewBox="0 0 260 220" class="svg-chart">
+          <defs>
+            <style>
+              .label-text { font-family: 'Courier Prime', monospace; font-size: 9px; fill: #3a2d1e; }
+            </style>
+          </defs>
+          <!-- Grid circles -->
+          <g transform="translate(130, 110)">
+            <!-- Axes (6 dimensions) -->
+            <line x1="0" y1="-80" x2="0" y2="0" stroke="#c9b990" stroke-width="0.5"/>
+            <line x1="69.3" y1="-40" x2="0" y2="0" stroke="#c9b990" stroke-width="0.5"/>
+            <line x1="69.3" y1="40" x2="0" y2="0" stroke="#c9b990" stroke-width="0.5"/>
+            <line x1="0" y1="80" x2="0" y2="0" stroke="#c9b990" stroke-width="0.5"/>
+            <line x1="-69.3" y1="40" x2="0" y2="0" stroke="#c9b990" stroke-width="0.5"/>
+            <line x1="-69.3" y1="-40" x2="0" y2="0" stroke="#c9b990" stroke-width="0.5"/>
+
+            <!-- Grid rings -->
+            <polygon points="0,-80 69.3,-40 69.3,40 0,80 -69.3,40 -69.3,-40" fill="none" stroke="#c9b990" stroke-width="0.5" opacity="0.5"/>
+            <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="none" stroke="#c9b990" stroke-width="0.5" opacity="0.5"/>
+            <polygon points="0,-40 34.6,-20 34.6,20 0,40 -34.6,20 -34.6,-20" fill="none" stroke="#c9b990" stroke-width="0.5" opacity="0.5"/>
+            <polygon points="0,-20 17.3,-10 17.3,10 0,20 -17.3,10 -17.3,-10" fill="none" stroke="#c9b990" stroke-width="0.5" opacity="0.5"/>
+
+            <!-- YourAI — scores: DataRet=10, DBIso=9, PromptDef=8, AuditLog=9, Pricing=10, EthicsAlign=9 -->
+            <!-- Normalize: score/10 * 80 = radius -->
+            <!-- angles: 270(top), 330, 30, 90, 150, 210 -->
+            <!-- 10=80, 9=72, 8=64 -->
+            <polygon 
+              points="0,-80 62.4,-36 55.4,32 0,72 -62.4,36 -62.4,-36"
+              fill="rgba(139,58,30,0.25)" stroke="#8b3a1e" stroke-width="2"/>
+
+            <!-- Harvey — scores: 8,7,7,7,2,8 -->
+            <polygon 
+              points="0,-64 52,-28 48.5,20 0,56 -17.3,10 -48.5,-28"
+              fill="rgba(28,43,74,0.15)" stroke="#1c2b4a" stroke-width="1.5" stroke-dasharray="4,2"/>
+
+            <!-- ChatGPT Enterprise — scores: 3,2,3,3,5,5 -->
+            <polygon 
+              points="0,-24 17.3,-8 20.8,12 0,24 -34.6,12 -34.6,-16"
+              fill="rgba(100,100,100,0.1)" stroke="#6b5f50" stroke-width="1" stroke-dasharray="2,3"/>
+
+            <!-- Labels -->
+            <text x="0" y="-85" class="label-text" text-anchor="middle">Data Retention</text>
+            <text x="76" y="-42" class="label-text" text-anchor="start">DB Isolation</text>
+            <text x="76" y="50" class="label-text" text-anchor="start">Prompt Defense</text>
+            <text x="0" y="96" class="label-text" text-anchor="middle">Audit Logging</text>
+            <text x="-76" y="50" class="label-text" text-anchor="end">SMB Pricing</text>
+            <text x="-76" y="-42" class="label-text" text-anchor="end">Ethics Alignment</text>
+          </g>
+          <!-- Legend -->
+          <rect x="12" y="190" width="10" height="3" fill="#8b3a1e"/>
+          <text x="26" y="195" font-family="Courier Prime, monospace" font-size="8" fill="#3a2d1e">YourAI.com</text>
+          <rect x="90" y="190" width="10" height="3" fill="#1c2b4a"/>
+          <text x="104" y="195" font-family="Courier Prime, monospace" font-size="8" fill="#3a2d1e">Harvey AI</text>
+          <rect x="158" y="190" width="10" height="3" fill="#6b5f50"/>
+          <text x="172" y="195" font-family="Courier Prime, monospace" font-size="8" fill="#3a2d1e">ChatGPT Ent.</text>
+        </svg>
+        <p class="footnote">&#9670; Scores represent editorial assessment based on publicly available documentation. YourAI.com scores reflect design targets for production system.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 4: SUPPLEMENTAL SECURITY -->
+    <hr class="section-rule">
+    <div class="full-width-head">
+      <span class="section-num">IV.</span>
+      <div>
+        <h3>The Supporting Arsenal: Off-The-Shelf Technologies That Fortify the Platform</h3>
+        <div class="section-sub">Commercial security tooling layered into a defense-in-depth posture</div>
+      </div>
+    </div>
+
+    <div class="three-col" style="margin-top: 20px;">
+      <div class="col">
+        <h4 class="col-head">Container Security</h4>
+        <p>YourAI.com services are containerized and orchestrated via Kubernetes. Each firm's processing namespace is isolated at the pod level, enforced by Open Policy Agent (OPA) admission controllers.</p>
+        <ul class="editorial-list">
+          <li>Distroless base images minimize attack surface</li>
+          <li>Runtime threat detection via Falco</li>
+          <li>Image signing and provenance via Cosign/Sigstore</li>
+          <li>Network policies enforce zero-trust lateral movement prevention</li>
+          <li>Pod Security Standards enforced at admission</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4 class="col-head">Secrets &amp; Key Management</h4>
+        <p>No secret — API key, database credential, TLS certificate — shall ever appear in source code, environment variables, or container images. All secrets are managed through a dedicated vault with dynamic credential issuance.</p>
+        <ul class="editorial-list">
+          <li>HashiCorp Vault or AWS Secrets Manager for all credentials</li>
+          <li>Anthropic API keys rotated on schedule, never hardcoded</li>
+          <li>Database credentials dynamically provisioned per-service</li>
+          <li>Trufflehog / Gitleaks in CI/CD pipeline to catch leaks pre-commit</li>
+          <li>mTLS between all internal services</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4 class="col-head">DLP &amp; Injection Prevention</h4>
+        <p>Two separate threat vectors require active defense: data exfiltration (DLP) and adversarial prompt manipulation (injection). We address both before content reaches the AI.</p>
+        <ul class="editorial-list">
+          <li>Nightfall or equivalent DLP scans all inbound documents</li>
+          <li>Regex + semantic injection pattern detection on all prompt inputs</li>
+          <li>System prompt marked with inviolable instruction markers</li>
+          <li>Output scanning for unintended PII or privileged data echoing</li>
+          <li>Immutable append-only audit table for all AI interactions</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RISK MATRIX -->
+    <hr class="section-rule">
+    <h3 class="section-head">Residual Risk Assessment</h3>
+    <div class="two-col" style="margin-top: 16px;">
+      <div>
+        <p>No system eliminates risk entirely. The matrix at right identifies the principal risk categories facing a legal AI platform, assessed after the security controls described in this document are fully implemented. Residual risks that remain are primarily in the domain of human behavior — an attorney who chooses to use an unauthorized consumer AI tool despite having access to a compliant platform — and the inherent limitations of any AI model's accuracy.</p>
+        <div class="warning-box" style="margin-top: 16px;">
+          <h5>&#9670; The Shadow AI Problem Persists</h5>
+          <p>Providing a compliant platform eliminates the excuse but not the behavior. YourAI.com should invest in onboarding and training that makes the platform the <em>path of least resistance</em> for everyday legal work. A platform attorneys love to use is a platform they will not circumvent.</p>
+        </div>
+        <p>The highest-residual risk category — AI model accuracy — is not a security risk but a professional liability risk. YourAI.com's posture is to position outputs as <em>first-draft assistance</em>, not authoritative legal conclusions, and to build citation sourcing into every response so that attorney review is structurally encouraged rather than merely advised.</p>
+      </div>
+      <div>
+        <div class="chart-container">
+          <div class="chart-title">Residual Risk Matrix</div>
+          <div class="chart-subtitle">Post-Control Implementation &bull; Likelihood vs. Impact</div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <div class="risk-axis">Likelihood &#8593;</div>
+            <div style="flex: 1;">
+              <div class="risk-matrix">
+                <div class="risk-header" style="font-size:8px; display:flex; align-items:center; justify-content:center;">Impact &#8594;</div>
+                <div class="risk-header">Low</div>
+                <div class="risk-header">Moderate</div>
+                <div class="risk-header">High</div>
+                <div class="risk-header">Critical</div>
+
+                <div class="risk-header">High</div>
+                <div class="risk-low">Shadow AI Usage</div>
+                <div class="risk-med">Phishing / Cred Theft</div>
+                <div class="risk-high">AI Hallucination</div>
+                <div class="risk-crit">Insider Threat</div>
+
+                <div class="risk-header">Medium</div>
+                <div class="risk-low">Mis-scoped Query</div>
+                <div class="risk-med">Audit Log Gap</div>
+                <div class="risk-med">API Outage</div>
+                <div class="risk-high">Injection Attack</div>
+
+                <div class="risk-header">Low</div>
+                <div class="risk-low">Config Drift</div>
+                <div class="risk-low">Key Rotation Fail</div>
+                <div class="risk-med">Vendor Policy Change</div>
+                <div class="risk-med">Subpoena to Anthropic</div>
+
+                <div class="risk-header">Rare</div>
+                <div class="risk-low">Container Escape</div>
+                <div class="risk-low">RLS Bypass</div>
+                <div class="risk-low">ZDR Contract Breach</div>
+                <div class="risk-med">Data Residency Viol.</div>
+              </div>
+              <div style="display:flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                <span style="display:flex; align-items:center; gap:4px; font-family: Courier Prime, monospace; font-size:9px;">
+                  <span style="width:12px; height:12px; background:#d4e8d4; border:1px solid #ccc; display:inline-block;"></span>Low
+                </span>
+                <span style="display:flex; align-items:center; gap:4px; font-family: Courier Prime, monospace; font-size:9px;">
+                  <span style="width:12px; height:12px; background:#f0e0a0; border:1px solid #ccc; display:inline-block;"></span>Medium
+                </span>
+                <span style="display:flex; align-items:center; gap:4px; font-family: Courier Prime, monospace; font-size:9px;">
+                  <span style="width:12px; height:12px; background:#f0c0a0; border:1px solid #ccc; display:inline-block;"></span>High
+                </span>
+                <span style="display:flex; align-items:center; gap:4px; font-family: Courier Prime, monospace; font-size:9px;">
+                  <span style="width:12px; height:12px; background:#e08080; border:1px solid #ccc; display:inline-block;"></span>Critical
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLOSING -->
+    <hr class="section-rule">
+    <div class="ornament">&#10022; &nbsp; &#10022; &nbsp; &#10022;</div>
+
+    <div class="three-col">
+      <div class="col">
+        <h4 class="col-head">The Investment Thesis</h4>
+        <p>YourAI.com is not building another AI chatbot for lawyers. It is building the only AI infrastructure platform specifically designed to honor the ethical obligations of the legal profession — at a price point accessible to the 449,600 firms that BigLaw incumbents do not serve.</p>
+        <p>The moat is architectural, not cosmetic. It is row-level database isolation, zero-data-retention API contracts, and a prompt injection defense layer that our competitors have not publicly disclosed implementing.</p>
+      </div>
+      <div class="col">
+        <h4 class="col-head">Immediate Priorities</h4>
+        <ul class="editorial-list">
+          <li>Execute Anthropic Zero Data Retention addendum prior to any client onboarding</li>
+          <li>Implement PostgreSQL RLS policies in schema v1.0, not as a post-launch retrofit</li>
+          <li>Establish immutable audit logging from day one — this is your eDiscovery defense</li>
+          <li>Engage legal ethics counsel to draft the attorney disclosure document</li>
+          <li>Deploy DLP layer before accepting document uploads from any law firm</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4 class="col-head">The Bottom Line</h4>
+        <p>The lawyer who uses YourAI.com can tell her client, her managing partner, her bar association, and a federal judge the following: <em>My AI tool retains no data at the vendor. My queries never train a public model. My client data is segregated at the database engine level. My work product is logged immutably and accessible for review.</em></p>
+        <p>No consumer AI tool can make that statement. YourAI.com can.</p>
+      </div>
+    </div>
+
+    <div class="ornament" style="margin-top: 24px;">&#10022; &nbsp; &#10022; &nbsp; &#10022;</div>
+    <p class="footnote" style="text-align:center; margin-top: 8px;">
+      This document is prepared for investor review and internal strategic planning. It reflects design targets and architectural intentions for the YourAI.com platform. Some features described are planned capabilities. Competitor assessments are based on publicly available documentation and may not reflect undisclosed internal implementations. This document does not constitute legal advice. &bull; YourAI.com Confidential &bull; 2025
+    </p>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="page-footer">
+    <span>YourAI.com &mdash; Investor Technical Briefing</span>
+    <span>&#9670; The Legal Intelligence Review &#9670;</span>
+    <span>Spring 2025 &bull; Confidential</span>
+  </footer>
+
+</article>
+</body>
+</html>
